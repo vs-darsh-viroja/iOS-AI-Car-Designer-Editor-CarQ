@@ -17,7 +17,8 @@ struct PromptView: View {
        
             Image(.promptField)
                 .resizable()
-                .frame(width: ScaleUtility.scaledValue(345), height: ScaleUtility.scaledValue(160))
+                .frame(width:  isIPad ?  ScaleUtility.scaledValue(715) : ScaleUtility.scaledValue(345),
+                       height:  isIPad ?  ScaleUtility.scaledValue(210) : ScaleUtility.scaledValue(160))
                 .overlay {
                     VStack {
                         
@@ -72,8 +73,8 @@ struct PromptView: View {
                        
                         
                     }
-                    .padding(.horizontal, ScaleUtility.scaledSpacing(15))
-                    .padding(.vertical, ScaleUtility.scaledSpacing(15))
+                    .padding(.horizontal, isIPad ?  ScaleUtility.scaledSpacing(25) : ScaleUtility.scaledSpacing(15))
+                    .padding(.vertical, isIPad ? ScaleUtility.scaledSpacing(25) : ScaleUtility.scaledSpacing(15))
                 }
         
     }

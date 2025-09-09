@@ -21,6 +21,10 @@ struct ChangeColorView: View {
             Spacer()
         }
         .navigationBarHidden(true)
-        .background(Color.secondaryApp.ignoresSafeArea(.all))
+        .ignoresSafeArea(.container, edges: [.bottom])
+        .toolbar(.hidden, for: .navigationBar)
+        .ignoresSafeArea(.keyboard)
+        .navigationBarHidden(true)
+        .background(Color.secondaryApp.edgesIgnoringSafeArea(.all))
     }
 }

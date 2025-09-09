@@ -9,6 +9,7 @@ import Foundation
 import SwiftUI
 
 struct HomeView: View {
+    @Binding var isCreateScreen: Bool
     var body: some View {
         VStack(spacing: ScaleUtility.scaledSpacing(0)) {
             
@@ -20,9 +21,14 @@ struct HomeView: View {
                 Spacer()
                     .frame(height: ScaleUtility.scaledValue(20))
       
-            Image(.createIcon)
-                .resizable()
-                .frame(width: ScaleUtility.scaledValue(345), height: ScaleUtility.scaledValue(150))
+                Button(action: {
+                    isCreateScreen = true
+                }) {
+                    Image(.createIcon)
+                        .resizable()
+                        .frame(width: isIPad ? ScaleUtility.scaledValue(715) :  ScaleUtility.scaledValue(345),
+                               height: isIPad ?  ScaleUtility.scaledValue(200) : ScaleUtility.scaledValue(150))
+                }
                 
                 Spacer()
                     .frame(height: ScaleUtility.scaledValue(20))

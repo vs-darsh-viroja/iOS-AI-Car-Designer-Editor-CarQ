@@ -32,6 +32,9 @@ struct ToolsView: View {
     @State var isAddObject: Bool = false
     @State var isReplaceObject: Bool = false
     
+    @State private var twinkle = false
+
+    
     var body: some View {
         VStack(spacing: ScaleUtility.scaledSpacing(15)) {
             
@@ -52,27 +55,41 @@ struct ToolsView: View {
                                     
                                     Image(.toolsBg)
                                         .resizable()
-                                        .frame(width: ScaleUtility.scaledValue(165),
-                                               height: ScaleUtility.scaledValue(170))
+                                        .frame(width: isIPad ? ScaleUtility.scaledValue(345) : ScaleUtility.scaledValue(165),
+                                               height: isIPad ? ScaleUtility.scaledValue(230) : ScaleUtility.scaledValue(170))
                                         .overlay {
                                             Image(.toolsOverlayBg)
                                                 .resizable()
-                                                .frame(width: ScaleUtility.scaledValue(165),
-                                                       height: ScaleUtility.scaledValue(170))
+                                                .frame(width: isIPad ? ScaleUtility.scaledValue(345) : ScaleUtility.scaledValue(165),
+                                                       height: isIPad ? ScaleUtility.scaledValue(230) : ScaleUtility.scaledValue(170))
                                         }
                                         .overlay(alignment: .topTrailing) {
                                             Image(.starsIcon)
                                                 .resizable()
-                                                .frame(width: ScaleUtility.scaledValue(76),
-                                                       height: ScaleUtility.scaledValue(47))
+                                                .frame(
+                                                    width: isIPad ?  ScaleUtility.scaledValue(176) : ScaleUtility.scaledValue(76),
+                                                    height: isIPad ? ScaleUtility.scaledValue(67)  : ScaleUtility.scaledValue(47)
+                                                )
+                                                // ✨ twinkle
+                                                .opacity(twinkle ? 1.0 : 0.35)
+                                                .scaleEffect(twinkle ? 1.04 : 1.00)
+                                                // optional: stagger each card's twinkle a bit using toolIndex
+                                                .animation(
+                                                    .easeInOut(duration: 0.9)
+                                                        .repeatForever(autoreverses: true)
+                                                        .delay(Double(toolIndex) * 0.15),
+                                                    value: twinkle
+                                                )
                                                 .padding(.top, ScaleUtility.scaledSpacing(13))
                                                 .padding(.trailing, ScaleUtility.scaledSpacing(8))
                                         }
+
                                         .overlay(alignment: .leading) {
                                             VStack(alignment: .leading) {
                                                 Image(tool.imageName)
                                                     .resizable()
-                                                    .frame(width: ScaleUtility.scaledValue(31.2), height: ScaleUtility.scaledValue(31.2))
+                                                    .frame(width: isIPad ? ScaleUtility.scaledValue(51.2) : ScaleUtility.scaledValue(31.2)
+                                                           , height: isIPad ? ScaleUtility.scaledValue(51.2) :  ScaleUtility.scaledValue(31.2))
                                                     .padding(.all, ScaleUtility.scaledSpacing(10.4))
                                                     .background {
                                                         Circle()
@@ -97,6 +114,7 @@ struct ToolsView: View {
                 }
             }
         }
+        .onAppear { twinkle = true }
         .navigationDestination(isPresented: $isMagicalnModification) {
             MagicalModificationView(onBack: {
                 isMagicalnModification = false

@@ -17,7 +17,7 @@ enum TabSelection: Hashable {
 
 
 struct MainView: View {
-    
+    @State var isCreateScreen: Bool = false
     @State var selectedTab: TabSelection = .home
     let impactFeedback = UIImpactFeedbackGenerator(style: .light)
     
@@ -28,7 +28,7 @@ struct MainView: View {
                 Group {
                     switch selectedTab {
                     case .home:
-                        HomeView()
+                        HomeView(isCreateScreen: $isCreateScreen)
                     case .explore:
                         ExploreView()
                     case .history:
@@ -59,31 +59,35 @@ struct MainView: View {
                                
                             )
                             .ignoresSafeArea(.all)
-                            .frame(height: 150)
+                            .frame(height: isIPad ? ScaleUtility.scaledValue(250) : ScaleUtility.scaledValue(150))
                             .allowsHitTesting(true)
                             .offset(y: ScaleUtility.scaledSpacing(30))
+                         
+                           
                         
                         HStack {
                             
-                            HStack(spacing: ScaleUtility.scaledSpacing(4)) {
+                            HStack(spacing: isIPad ? ScaleUtility.scaledSpacing(24) :  ScaleUtility.scaledSpacing(4)) {
                                 VStack(spacing: ScaleUtility.scaledSpacing(5)) {
                                     Button {
                                         selectedTab = .home
                                     } label: {
-                                        VStack(spacing: ScaleUtility.scaledSpacing(1)) {
+                                        VStack(spacing: isIPad ? ScaleUtility.scaledSpacing(5) : ScaleUtility.scaledSpacing(1)) {
                                             Image(.homeIcon)
                                                 .renderingMode(.template)
                                                 .resizable()
                                                 .foregroundColor(Color.primaryApp)
-                                                .frame(width: ScaleUtility.scaledValue(24), height: ScaleUtility.scaledValue(24))
+                                                .frame(width: isIPad ? ScaleUtility.scaledValue(44): ScaleUtility.scaledValue(24),
+                                                       height: isIPad ? ScaleUtility.scaledValue(44) :ScaleUtility.scaledValue(24))
                                                 .opacity(selectedTab == .home ? 1 : 0.25)
                                             
                                             Text("Home")
                                                 .font(FontManager.ChakraPetchRegularFont(size: .scaledFontSize(10)))
                                                 .multilineTextAlignment(.center)
-                                                .frame(width: ScaleUtility.scaledValue(48))
+                                                .frame(width: isIPad ? ScaleUtility.scaledValue(68) : ScaleUtility.scaledValue(48))
                                                 .foregroundColor( selectedTab == .home ? Color.primaryApp : Color.primaryApp.opacity(0.25) )
                                         }
+                                        
                                         
                                     }
                                     
@@ -98,7 +102,8 @@ struct MainView: View {
                                                 endPoint: UnitPoint(x: 1, y: 0.5)
                                             )
                                         )
-                                        .frame(width: ScaleUtility.scaledValue(5), height: ScaleUtility.scaledValue(5))
+                                        .frame(width: isIPad ? ScaleUtility.scaledValue(10) : ScaleUtility.scaledValue(5),
+                                               height:  isIPad ? ScaleUtility.scaledValue(10) : ScaleUtility.scaledValue(5))
                                         .opacity(selectedTab == .home ? 1 : 0)
                                     
                                 }
@@ -107,20 +112,22 @@ struct MainView: View {
                                     Button {
                                         selectedTab = .explore
                                     } label: {
-                                        VStack(spacing: ScaleUtility.scaledSpacing(1)) {
+                                        VStack(spacing: isIPad ? ScaleUtility.scaledSpacing(5) : ScaleUtility.scaledSpacing(1)) {
                                             Image(.historyIcon)
                                                 .renderingMode(.template)
                                                 .resizable()
                                                 .foregroundColor(Color.primaryApp)
-                                                .frame(width:ScaleUtility.scaledValue(24), height: ScaleUtility.scaledValue(24))
+                                                .frame(width: isIPad ? ScaleUtility.scaledValue(44): ScaleUtility.scaledValue(24),
+                                                       height: isIPad ? ScaleUtility.scaledValue(44) :ScaleUtility.scaledValue(24))
                                                 .opacity(selectedTab == .explore ? 1 : 0.25)
                                             
                                             Text("Explore")
                                                 .font(FontManager.ChakraPetchRegularFont(size: .scaledFontSize(10)))
                                                 .multilineTextAlignment(.center)
-                                                .frame(width: ScaleUtility.scaledValue(48))
+                                                .frame(width: isIPad ? ScaleUtility.scaledValue(68) : ScaleUtility.scaledValue(48))
                                                 .foregroundColor( selectedTab == .explore ? Color.primaryApp : Color.primaryApp.opacity(0.25) )
                                         }
+                                        .offset(y: ScaleUtility.scaledSpacing(2))
                                         
                                     }
                                     
@@ -136,7 +143,8 @@ struct MainView: View {
                                                 endPoint: UnitPoint(x: 1, y: 0.5)
                                             )
                                         )
-                                        .frame(width: ScaleUtility.scaledValue(5), height: ScaleUtility.scaledValue(5))
+                                        .frame(width: isIPad ? ScaleUtility.scaledValue(10) : ScaleUtility.scaledValue(5),
+                                               height:  isIPad ? ScaleUtility.scaledValue(10) : ScaleUtility.scaledValue(5))
                                         .opacity(selectedTab == .explore ? 1 : 0)
                                     
                                     
@@ -147,25 +155,27 @@ struct MainView: View {
                             
                             Spacer()
                             
-                            HStack(spacing: ScaleUtility.scaledSpacing(4)) {
+                            HStack(spacing: isIPad ?  ScaleUtility.scaledSpacing(24) : ScaleUtility.scaledSpacing(4)) {
                                 VStack(spacing: ScaleUtility.scaledSpacing(5)) {
                                     Button {
                                         selectedTab = .history
                                     } label: {
-                                        VStack(spacing: ScaleUtility.scaledSpacing(1)) {
+                                        VStack(spacing: isIPad ? ScaleUtility.scaledSpacing(5) : ScaleUtility.scaledSpacing(1)) {
                                             Image(.historyIcon)
                                                 .renderingMode(.template)
                                                 .resizable()
                                                 .foregroundColor(Color.primaryApp)
-                                                .frame(width: ScaleUtility.scaledValue(24), height: ScaleUtility.scaledValue(24))
+                                                .frame(width: isIPad ? ScaleUtility.scaledValue(44): ScaleUtility.scaledValue(24),
+                                                       height: isIPad ? ScaleUtility.scaledValue(44) :ScaleUtility.scaledValue(24))
                                                 .opacity(selectedTab == .history ? 1 : 0.25)
                                             
                                             Text("History")
                                                 .font(FontManager.ChakraPetchRegularFont(size: .scaledFontSize(10)))
                                                 .multilineTextAlignment(.center)
-                                                .frame(width: ScaleUtility.scaledValue(48))
+                                                .frame(width: isIPad ? ScaleUtility.scaledValue(68) : ScaleUtility.scaledValue(48))
                                                 .foregroundColor( selectedTab == .history ? Color.primaryApp : Color.primaryApp.opacity(0.25) )
                                         }
+                                        
                                         
                                     }
                                     
@@ -181,7 +191,8 @@ struct MainView: View {
                                                 endPoint: UnitPoint(x: 1, y: 0.5)
                                             )
                                         )
-                                        .frame(width: ScaleUtility.scaledValue(5), height: ScaleUtility.scaledValue(5))
+                                        .frame(width: isIPad ? ScaleUtility.scaledValue(10) : ScaleUtility.scaledValue(5),
+                                               height:  isIPad ? ScaleUtility.scaledValue(10) : ScaleUtility.scaledValue(5))
                                         .opacity(selectedTab == .history ? 1 : 0)
                                     
                                     
@@ -191,21 +202,22 @@ struct MainView: View {
                                     Button {
                                         selectedTab = .settings
                                     } label: {
-                                        VStack(spacing: ScaleUtility.scaledSpacing(1)) {
+                                        VStack(spacing: isIPad ? ScaleUtility.scaledSpacing(5) : ScaleUtility.scaledSpacing(1)) {
                                             Image(.settingsIcon)
                                                 .renderingMode(.template)
                                                 .resizable()
-                                                .frame(width: ScaleUtility.scaledValue(24), height: ScaleUtility.scaledValue(24))
+                                                .frame(width: isIPad ? ScaleUtility.scaledValue(44): ScaleUtility.scaledValue(24),
+                                                       height: isIPad ? ScaleUtility.scaledValue(44) :ScaleUtility.scaledValue(24))
                                                 .foregroundColor(Color.primaryApp)
                                                 .opacity(selectedTab == .settings ? 1 : 0.25)
                                             
                                             Text("Settings")
                                                 .font(FontManager.ChakraPetchRegularFont(size: .scaledFontSize(10)))
                                                 .multilineTextAlignment(.center)
-                                                .frame(width: ScaleUtility.scaledValue(48))
+                                                .frame(width: isIPad ? ScaleUtility.scaledValue(68) : ScaleUtility.scaledValue(48))
                                                 .foregroundColor( selectedTab == .settings ? Color.primaryApp : Color.primaryApp.opacity(0.25) )
                                         }
-                                        
+                                        .offset(y: ScaleUtility.scaledSpacing(2))
                                     }
                                     
                                     Circle()
@@ -219,7 +231,8 @@ struct MainView: View {
                                                 endPoint: UnitPoint(x: 1, y: 0.5)
                                             )
                                         )
-                                        .frame(width: ScaleUtility.scaledValue(5), height: ScaleUtility.scaledValue(5))
+                                        .frame(width: isIPad ? ScaleUtility.scaledValue(10) : ScaleUtility.scaledValue(5),
+                                               height:  isIPad ? ScaleUtility.scaledValue(10) : ScaleUtility.scaledValue(5))
                                         .opacity(selectedTab == .settings ? 1 : 0)
                                     
                                 }
@@ -228,27 +241,39 @@ struct MainView: View {
                             
                             
                         }
-                        .padding(.horizontal, ScaleUtility.scaledSpacing(52))
+                        .padding(.horizontal, isIPad ? ScaleUtility.scaledSpacing(132) : ScaleUtility.scaledSpacing(52))
                         .background {
                             Image(.tabview)
                                 .resizable()
-                                .frame(width: ScaleUtility.scaledValue(310), height: ScaleUtility.scaledValue(70))
+                                .frame(width: isIPad ?  ScaleUtility.scaledValue(610) : ScaleUtility.scaledValue(310),
+                                       height: isIPad ?  ScaleUtility.scaledValue(120) :   ScaleUtility.scaledValue(70))
                             
                             
                         }
                         .overlay(alignment: .top) {
-                            Image(.steeringIcon)
-                                .resizable()
-                                .frame(width: ScaleUtility.scaledValue(58), height: ScaleUtility.scaledValue(58))
-                                .offset(y: ScaleUtility.scaledSpacing(-45))
+                            Button(action: {
+                                isCreateScreen = true
+                            }) {
+                                Image(.steeringIcon)
+                                    .resizable()
+                                    .frame(width: isIPad ? ScaleUtility.scaledValue(88) : ScaleUtility.scaledValue(58),
+                                           height: isIPad ? ScaleUtility.scaledValue(88) : ScaleUtility.scaledValue(58))
+                                    .offset(y: isIPad ? ScaleUtility.scaledSpacing(-75) : ScaleUtility.scaledSpacing(-45))
+                                    .zIndex(1)
+                            }
                         }
-                        .offset(y: ScaleUtility.scaledSpacing(30))
+                        .offset(y: isIPad ? ScaleUtility.scaledSpacing(50) : ScaleUtility.scaledSpacing(30))
                         
                         
                     }
                     .ignoresSafeArea(.all)
                 }
               
+            }
+            .navigationDestination(isPresented: $isCreateScreen) {
+                CreateView(onBack: {
+                  isCreateScreen = false
+                })
             }
             .background(Color.secondaryApp.ignoresSafeArea(.all))
         }

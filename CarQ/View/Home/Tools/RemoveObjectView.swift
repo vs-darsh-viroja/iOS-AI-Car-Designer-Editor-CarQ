@@ -18,9 +18,20 @@ struct RemoveObjectView: View {
             })
             .padding(.top, ScaleUtility.scaledSpacing(15))
             
+            
+            UploadContainerView()
+            
+            
             Spacer()
+            
+            GenerateButtonView(isDisabled: true, action: {
+                
+            })
         }
+        .ignoresSafeArea(.container, edges: [.bottom])
+        .toolbar(.hidden, for: .navigationBar)
+        .ignoresSafeArea(.keyboard)
         .navigationBarHidden(true)
-        .background(Color.secondaryApp.ignoresSafeArea(.all))
+        .background(Color.secondaryApp.edgesIgnoringSafeArea(.all))
     }
 }

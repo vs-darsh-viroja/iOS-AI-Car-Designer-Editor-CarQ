@@ -1,31 +1,32 @@
 //
-//  UploadContainer.swift
+//  UploadReferenceImageView.swift
 //  CarQ
 //
-//  Created by Purvi Sancheti on 08/09/25.
+//  Created by Purvi Sancheti on 09/09/25.
 //
 
 import Foundation
 import SwiftUI
 
-struct UploadContainerView: View {
+struct UploadReferenceImageView: View {
+    var isOptional: Bool
+    
     var body: some View {
-        Image(.updloadBg1)
+        Image(.uploadBg2)
             .resizable()
             .frame(width: isIPad ?  ScaleUtility.scaledValue(715) : ScaleUtility.scaledValue(345),
-                   height: isIPad ?  ScaleUtility.scaledValue(395) :  ScaleUtility.scaledValue(345))
+                   height: isIPad ?  ScaleUtility.scaledValue(210) :  ScaleUtility.scaledValue(160))
             .overlay {
-                VStack(spacing: ScaleUtility.scaledSpacing(4)) {
-                    Image(.addIcon1)
+                VStack(spacing:0) {
+                    Image(.addIcon2)
                         .resizable()
                         .frame(width: ScaleUtility.scaledValue(52), height: ScaleUtility.scaledValue(52))
-                        .opacity(0.5)
                     
-                    Text("Upload your Car Image")
+                    Text( isOptional ? "Upload Reference Image\n( Optional )" : "Upload Reference Image")
                         .font(FontManager.ChakraPetchRegularFont(size: .scaledFontSize(16)))
                         .multilineTextAlignment(.center)
-                        .foregroundColor(Color.primaryApp.opacity(0.5))
-                        
+                        .foregroundColor(.white)
+                        .opacity(0.5)
                 }
             }
     }
