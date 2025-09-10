@@ -6,6 +6,10 @@
 	objectVersion = 77;
 	objects = {
 
+/* Begin PBXBuildFile section */
+		8B1FF9B02E714DE40047B7F9 /* Kingfisher in Frameworks */ = {isa = PBXBuildFile; productRef = 8B1FF9AF2E714DE40047B7F9 /* Kingfisher */; };
+/* End PBXBuildFile section */
+
 /* Begin PBXFileReference section */
 		8BBB8F1D2E6C36850061357D /* CarQ.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = CarQ.app; sourceTree = BUILT_PRODUCTS_DIR; };
 /* End PBXFileReference section */
@@ -36,6 +40,7 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				8B1FF9B02E714DE40047B7F9 /* Kingfisher in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -78,6 +83,7 @@
 			);
 			name = CarQ;
 			packageProductDependencies = (
+				8B1FF9AF2E714DE40047B7F9 /* Kingfisher */,
 			);
 			productName = CarQ;
 			productReference = 8BBB8F1D2E6C36850061357D /* CarQ.app */;
@@ -107,6 +113,9 @@
 			);
 			mainGroup = 8BBB8F142E6C36850061357D;
 			minimizedProjectReferenceProxies = 1;
+			packageReferences = (
+				8B1FF9AE2E714DE40047B7F9 /* XCRemoteSwiftPackageReference "Kingfisher" */,
+			);
 			preferredProjectObjectVersion = 77;
 			productRefGroup = 8BBB8F1E2E6C36850061357D /* Products */;
 			projectDirPath = "";
@@ -267,6 +276,9 @@
 				ENABLE_PREVIEWS = YES;
 				GENERATE_INFOPLIST_FILE = YES;
 				INFOPLIST_FILE = CarQ/Info.plist;
+				INFOPLIST_KEY_NSCameraUsageDescription = "We use your camera to capture photos of car used to create car designs.";
+				INFOPLIST_KEY_NSPhotoLibraryAddUsageDescription = "We save the car photos you create to your photo library so you can easily view and share them.";
+				INFOPLIST_KEY_NSPhotoLibraryUsageDescription = "We save the car photos you create to your photo library so you can easily view and share them.";
 				"INFOPLIST_KEY_UIApplicationSceneManifest_Generation[sdk=iphoneos*]" = YES;
 				"INFOPLIST_KEY_UIApplicationSceneManifest_Generation[sdk=iphonesimulator*]" = YES;
 				"INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents[sdk=iphoneos*]" = YES;
@@ -309,6 +321,9 @@
 				ENABLE_PREVIEWS = YES;
 				GENERATE_INFOPLIST_FILE = YES;
 				INFOPLIST_FILE = CarQ/Info.plist;
+				INFOPLIST_KEY_NSCameraUsageDescription = "We use your camera to capture photos of car used to create car designs.";
+				INFOPLIST_KEY_NSPhotoLibraryAddUsageDescription = "We save the car photos you create to your photo library so you can easily view and share them.";
+				INFOPLIST_KEY_NSPhotoLibraryUsageDescription = "We save the car photos you create to your photo library so you can easily view and share them.";
 				"INFOPLIST_KEY_UIApplicationSceneManifest_Generation[sdk=iphoneos*]" = YES;
 				"INFOPLIST_KEY_UIApplicationSceneManifest_Generation[sdk=iphonesimulator*]" = YES;
 				"INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents[sdk=iphoneos*]" = YES;
@@ -360,6 +375,25 @@
 			defaultConfigurationName = Release;
 		};
 /* End XCConfigurationList section */
+
+/* Begin XCRemoteSwiftPackageReference section */
+		8B1FF9AE2E714DE40047B7F9 /* XCRemoteSwiftPackageReference "Kingfisher" */ = {
+			isa = XCRemoteSwiftPackageReference;
+			repositoryURL = "https://github.com/onevcat/Kingfisher.git";
+			requirement = {
+				kind = upToNextMajorVersion;
+				minimumVersion = 8.5.0;
+			};
+		};
+/* End XCRemoteSwiftPackageReference section */
+
+/* Begin XCSwiftPackageProductDependency section */
+		8B1FF9AF2E714DE40047B7F9 /* Kingfisher */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = 8B1FF9AE2E714DE40047B7F9 /* XCRemoteSwiftPackageReference "Kingfisher" */;
+			productName = Kingfisher;
+		};
+/* End XCSwiftPackageProductDependency section */
 	};
 	rootObject = 8BBB8F152E6C36850061357D /* Project object */;
 }

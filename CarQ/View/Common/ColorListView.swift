@@ -10,6 +10,7 @@ import SwiftUI
 // 2) Your view
 struct ColorListView: View {
     @Binding var selectedColor: String
+    @Binding var customColorHex: String? // ADD THIS BINDING
 
     // store custom color in both Color & UIColor to bridge the picker
     @State private var pickerColor: Color = .blue
@@ -54,9 +55,7 @@ struct ColorListView: View {
                 Rectangle()
                     .frame(width: ScaleUtility.scaledValue(16), height: ScaleUtility.scaledValue(16))
                     .foregroundColor(previewColor)
-                    .cornerRadius(3)
-                    .overlay(RoundedRectangle(cornerRadius: 3)
-                        .stroke(Color.secondary.opacity(0.2), lineWidth: 0.5))
+            
             }
             .frame(maxWidth: .infinity, alignment: .leading)
             .padding(.leading, ScaleUtility.scaledSpacing(15))
@@ -77,6 +76,7 @@ struct ColorListView: View {
                                 showSystemPicker = true
                             } else {
                                 selectedColor = item.colorname
+                                customColorHex = nil // Clear custom color when selecting preset
                             }
                         } label: {
                             ZStack {
@@ -106,9 +106,45 @@ struct ColorListView: View {
                 // This closure is called when "Apply Color" button is pressed
                 pickerColor = Color(selectedUIColor)
                 selectedColor = "custom"
+                
+                // CONVERT UIColor TO HEX STRING
+                customColorHex = selectedUIColor.toHexString()
             }
             .presentationDetents([.fraction(0.9)])
             .presentationDragIndicator(.visible)
         }
+    }
+}
+
+// MARK: - UIColor Extension to convert to hex
+extension UIColor {
+    func toHexString() -> String {
+        var red: CGFloat = 0
+        var green: CGFloat = 0
+        var blue: CGFloat = 0
+        var alpha: CGFloat = 0
+        
+        self.getRed(&red, green: &green, blue: &blue, alpha: &alpha)
+        
+        let r = Int(red * 255)
+        let g = Int(green * 255)
+        let b = Int(blue * 255)
+        
+        return String(format: "#%02X%02X%02X", r, g, b)
+    }
+    
+    func toRGBString() -> String {
+        var red: CGFloat = 0
+        var green: CGFloat = 0
+        var blue: CGFloat = 0
+        var alpha: CGFloat = 0
+        
+        self.getRed(&red, green: &green, blue: &blue, alpha: &alpha)
+        
+        let r = Int(red * 255)
+        let g = Int(green * 255)
+        let b = Int(blue * 255)
+        
+        return "RGB(\(r), \(g), \(b))"
     }
 }

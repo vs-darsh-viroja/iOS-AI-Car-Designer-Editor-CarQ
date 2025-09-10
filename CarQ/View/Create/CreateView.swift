@@ -9,13 +9,14 @@ import Foundation
 import SwiftUI
 
 struct CreateView: View {
-    
+    @StateObject private var viewModel = GenerationViewModel()
     var onBack: () -> Void
     @State var prompt: String = ""
     @FocusState private var searchFocused: Bool
     @State var selectedColor: String = ""
+    @State var customColorHex: String? = nil // ADD THIS STATE
     @State var selectedCarType: String = ""
-    @State var selectedDesignStyle: String = "" 
+    @State var selectedDesignStyle: String = ""
     @State var selectedAccessory: String = ""
     @State var isProcessing: Bool = false
     
@@ -37,7 +38,7 @@ struct CreateView: View {
                         
                         PromptView(prompt: $prompt, isInputFocused: $searchFocused)
                         
-                        ColorListView(selectedColor: $selectedColor)
+                        ColorListView(selectedColor: $selectedColor, customColorHex: $customColorHex) // PASS THE BINDING
                         
                         CarTypesView(selectedCarType: $selectedCarType)
                         
@@ -68,7 +69,29 @@ struct CreateView: View {
         .navigationBarHidden(true)
         .background(Color.secondaryApp.edgesIgnoringSafeArea(.all))
         .navigationDestination(isPresented: $isProcessing) {
-            ProcessingView()
+            ProcessingView(
+                viewModel: viewModel,
+                onBack: { isProcessing = false },
+                onAppear: {
+                    Task {
+                        let finalPrompt = PromptBuilder.buildTextPrompt(
+                            description: prompt,                             // REQUIRED
+                            color: selectedColor.isEmpty ? nil : selectedColor, // Pass selected color key
+                            customColorHex: customColorHex,                  // Pass custom color hex if available
+                            carType: selectedCarType.isEmpty ? nil : selectedCarType,
+                            designStyle: selectedDesignStyle.isEmpty ? nil : selectedDesignStyle,
+                            accessory: selectedAccessory.isEmpty ? nil : selectedAccessory
+                        )
+
+                        let started = await viewModel.startTextJob(prompt: finalPrompt)
+                        if started {
+                            await viewModel.pollUntilReady()
+                        } else {
+                            viewModel.shouldReturn = true
+                        }
+                    }
+                }
+            )
         }
     }
 }

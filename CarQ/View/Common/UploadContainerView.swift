@@ -10,6 +10,7 @@ import SwiftUI
 
 struct UploadContainerView: View {
     var body: some View {
+        
         Image(.updloadBg1)
             .resizable()
             .frame(width: isIPad ?  ScaleUtility.scaledValue(715) : ScaleUtility.scaledValue(345),

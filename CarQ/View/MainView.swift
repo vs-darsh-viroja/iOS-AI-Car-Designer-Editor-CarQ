@@ -274,6 +274,7 @@ struct MainView: View {
                 CreateView(onBack: {
                   isCreateScreen = false
                 })
+                .background(Color.secondaryApp.ignoresSafeArea(.all))
             }
             .background(Color.secondaryApp.ignoresSafeArea(.all))
         }
