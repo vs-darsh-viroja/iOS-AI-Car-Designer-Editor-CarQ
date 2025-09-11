@@ -6,48 +6,46 @@
 //
 
 
-import Foundation
 import SwiftUI
-
-struct CameraPicker: UIViewControllerRepresentable {
-    @Environment(\.presentationMode) private var presentationMode
-    @Binding var image: Image?
-    @Binding var uiImage: UIImage?   // Add this
-
-    class Coordinator: NSObject, UINavigationControllerDelegate, UIImagePickerControllerDelegate {
-        let parent: CameraPicker
-
-        init(_ parent: CameraPicker) {
-            self.parent = parent
-        }
-
-        func imagePickerController(_ picker: UIImagePickerController,
-                                   didFinishPickingMediaWithInfo info: [UIImagePickerController.InfoKey : Any]) {
-            if let uiImage = info[.originalImage] as? UIImage {
-                parent.uiImage = uiImage                  // Save UIImage
-                parent.image = Image(uiImage: uiImage)    // Save SwiftUI.Image
-            }
-            parent.presentationMode.wrappedValue.dismiss()
-        }
-
-        func imagePickerControllerDidCancel(_ picker: UIImagePickerController) {
-            parent.presentationMode.wrappedValue.dismiss()
-        }
-    }
-
-    func makeCoordinator() -> Coordinator {
-        Coordinator(self)
-    }
-
+// Image Picker for Camera
+struct ImagePicker: UIViewControllerRepresentable {
+    let sourceType: UIImagePickerController.SourceType
+    let onImagePicked: (UIImage) -> Void
+    @Environment(\.dismiss) var dismiss
+    
     func makeUIViewController(context: Context) -> UIImagePickerController {
         let picker = UIImagePickerController()
-        picker.sourceType = .camera
+        picker.sourceType = sourceType
         picker.delegate = context.coordinator
         return picker
     }
-
+    
     func updateUIViewController(_ uiViewController: UIImagePickerController, context: Context) {}
+    
+    func makeCoordinator() -> Coordinator {
+        Coordinator(self)
+    }
+    
+    class Coordinator: NSObject, UIImagePickerControllerDelegate, UINavigationControllerDelegate {
+        let parent: ImagePicker
+        
+        init(_ parent: ImagePicker) {
+            self.parent = parent
+        }
+        
+        func imagePickerController(_ picker: UIImagePickerController, didFinishPickingMediaWithInfo info: [UIImagePickerController.InfoKey : Any]) {
+            if let image = info[.originalImage] as? UIImage {
+                parent.onImagePicked(image)
+            }
+            parent.dismiss()
+        }
+        
+        func imagePickerControllerDidCancel(_ picker: UIImagePickerController) {
+            parent.dismiss()
+        }
+    }
 }
+
 
 import AVFoundation
 import PhotosUI

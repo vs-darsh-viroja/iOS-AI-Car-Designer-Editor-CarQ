@@ -29,6 +29,113 @@ final class NetworkManager {
     
     private let baseURL = "https://api.carq-app.com"
     
+    // MARK: - Image-to-Image API (Single Image)
+    func uploadImageToImage(image: UIImage, prompt: String) async throws -> ImageUploadResponse {
+        guard let url = URL(string: "\(baseURL)/api/img-to-img") else { throw NetworkError.invalidURL }
+
+        var request = URLRequest(url: url)
+        request.httpMethod = "POST"
+
+        let boundary = "Boundary-\(UUID().uuidString)"
+        request.setValue("multipart/form-data; boundary=\(boundary)", forHTTPHeaderField: "Content-Type")
+
+        var body = Data()
+
+        // Add single image to images[] array
+        if let data = image.jpegData(compressionQuality: 0.9) {
+            body.append("--\(boundary)\r\n")
+            body.append("Content-Disposition: form-data; name=\"images[]\"; filename=\"image.jpg\"\r\n")
+            body.append("Content-Type: image/jpeg\r\n\r\n")
+            body.append(data)
+            body.append("\r\n")
+        }
+
+        // Helper function for text fields
+        func addField(_ name: String, _ value: String) {
+            body.append("--\(boundary)\r\n")
+            body.append("Content-Disposition: form-data; name=\"\(name)\"\r\n\r\n")
+            body.append(value)
+            body.append("\r\n")
+        }
+
+        addField("prompt", prompt)
+        addField("device_id", "123")
+        addField("is_paid", "\(false)")
+        addCommonFields(&body, boundary: boundary)
+        addField("aspect_ratio", "square")
+
+        body.append("--\(boundary)--\r\n")
+        request.httpBody = body
+
+        let (data, response) = try await URLSession.shared.data(for: request)
+        guard let http = response as? HTTPURLResponse else { throw NetworkError.invalidResponse }
+        guard http.statusCode == 200 else { throw NetworkError.serverError(http.statusCode) }
+
+        do { return try JSONDecoder().decode(ImageUploadResponse.self, from: data) }
+        catch { throw NetworkError.decodingError }
+    }
+    
+    // MARK: - Magical Modification API (Image + Mask)
+
+
+     func uploadMagicalModification(image: UIImage, maskImage: UIImage, prompt: String) async throws -> ImageUploadResponse {
+         guard let url = URL(string: "\(baseURL)/api/img-to-img") else { throw NetworkError.invalidURL }
+
+         var request = URLRequest(url: url)
+         request.httpMethod = "POST"
+
+         let boundary = "Boundary-\(UUID().uuidString)"
+         request.setValue("multipart/form-data; boundary=\(boundary)", forHTTPHeaderField: "Content-Type")
+
+         var body = Data()
+
+         // Add original image to images[] array
+         if let data = image.jpegData(compressionQuality: 0.9) {
+             body.append("--\(boundary)\r\n")
+             body.append("Content-Disposition: form-data; name=\"images[]\"; filename=\"original.jpg\"\r\n")
+             body.append("Content-Type: image/jpeg\r\n\r\n")
+             body.append(data)
+             body.append("\r\n")
+         }
+
+         // Add mask image to images[] array
+         if let data = maskImage.jpegData(compressionQuality: 0.9) {
+             body.append("--\(boundary)\r\n")
+             body.append("Content-Disposition: form-data; name=\"images[]\"; filename=\"mask.jpg\"\r\n")
+             body.append("Content-Type: image/jpeg\r\n\r\n")
+             body.append(data)
+             body.append("\r\n")
+         }
+
+         // Helper function for text fields
+         func addField(_ name: String, _ value: String) {
+             body.append("--\(boundary)\r\n")
+             body.append("Content-Disposition: form-data; name=\"\(name)\"\r\n\r\n")
+             body.append(value)
+             body.append("\r\n")
+         }
+
+         addField("prompt", prompt)
+         addField("device_id", "123")
+         addField("is_paid", "\(false)")
+         addCommonFields(&body, boundary: boundary)
+         addField("aspect_ratio", "square")
+
+         body.append("--\(boundary)--\r\n")
+         request.httpBody = body
+
+         let (data, response) = try await URLSession.shared.data(for: request)
+         guard let http = response as? HTTPURLResponse else { throw NetworkError.invalidResponse }
+         guard http.statusCode == 200 else { throw NetworkError.serverError(http.statusCode) }
+
+         do { return try JSONDecoder().decode(ImageUploadResponse.self, from: data) }
+         catch { throw NetworkError.decodingError }
+     }
+
+
+
+    
+    // MARK: - Text-to-Image API (No Image)
     func uploadTextToImage(prompt: String) async throws -> ImageUploadResponse {
         guard let url = URL(string: "\(baseURL)/api/text-to-img") else { throw NetworkError.invalidURL }
 
@@ -96,15 +203,14 @@ final class NetworkManager {
             body.append("\r\n")
         }
 
-//        // Pull userId from UserDefaults
-//         let userId = UserSettings.shared.userId
-//         addField("device_id", userId)
-//        
-//        let isPro = UserSettings.shared.isPaid
-//        addField("is_paid", "\(isPro)")
+        // TODO: Uncomment when UserSettings is implemented
+        // let userId = UserSettings.shared.userId
+        // addField("device_id", userId)
+        
+        // let isPro = UserSettings.shared.isPaid
+        // addField("is_paid", "\(isPro)")
     }
 }
-
 
 // MARK: - Data helper
 private extension Data {
@@ -112,4 +218,3 @@ private extension Data {
         if let d = string.data(using: .utf8) { append(d) }
     }
 }
-

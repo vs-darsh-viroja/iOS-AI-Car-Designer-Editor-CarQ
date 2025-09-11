@@ -5,7 +5,6 @@
 //  Created by Purvi Sancheti on 10/09/25.
 //
 
-
 import Foundation
 
 public enum PromptBuilder {
@@ -67,7 +66,14 @@ public enum PromptBuilder {
         "Fender Flares": "bolt-on fender flares"
     ]
 
-    // MARK: - Public API
+    // MARK: - Magical Modification Change Type Prompts
+    private static let changeTypePrompts: [String: String] = [
+        "Resize": "resize the marked areas proportionally while maintaining realistic automotive design",
+        "Reshape": "reshape the marked areas with smooth transitions and realistic automotive curves",
+        "Redesign": "completely redesign the marked areas with modern automotive styling"
+    ]
+
+    // MARK: - Public API for Text-to-Image
     /// Primary overload with custom color support
     public static func buildTextPrompt(
         description: String,
@@ -151,5 +157,32 @@ public enum PromptBuilder {
             designStyle: designStyle,
             accessory: accessory
         )
+    }
+
+    // MARK: - NEW: Magical Modification Prompt Builder
+    public static func buildMagicalModificationPrompt(
+        userPrompt: String,
+        changeType: String
+    ) -> String {
+        var parts: [String] = []
+
+        // 1) Add the change type instruction
+        if let changeInstruction = changeTypePrompts[changeType] {
+            parts.append(changeInstruction)
+        }
+
+        // 2) Add user's specific modification request
+        let trimmed = userPrompt.trimmingCharacters(in: .whitespacesAndNewlines)
+        if !trimmed.isEmpty {
+            parts.append("Specific modification request: \(trimmed)")
+        }
+
+        // 3) Add magical modification constraints
+        parts.append("Apply changes only to the highlighted/masked areas. Maintain realistic automotive proportions and design language.")
+        parts.append("Blend modifications seamlessly with existing car design. Keep original lighting, shadows, and perspective.")
+        parts.append("High quality result with professional automotive finish. No distortions or unrealistic elements.")
+        parts.append("Preserve the overall vehicle structure and only modify the specifically marked regions.")
+
+        return parts.joined(separator: " ")
     }
 }

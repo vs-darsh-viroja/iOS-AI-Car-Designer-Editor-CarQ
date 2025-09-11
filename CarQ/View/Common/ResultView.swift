@@ -2,13 +2,14 @@
 //  ResultView.swift
 //  CarQ
 //
-//  Created by Purvi Sancheti on 10/09/25.
+//  Enhanced with proper CoreData integration
 //
 
 import Foundation
 import SwiftUI
 import Kingfisher
 import Photos
+import CoreData
 
 struct ResultView: View {
     @ObservedObject var viewModel: GenerationViewModel
@@ -16,11 +17,15 @@ struct ResultView: View {
     @State private var imageAspect: CGFloat? = nil
     @State private var showToast = false
     @State private var toastMessage = ""
+    @State private var showDeleteConfirmation = false
 
     @State private var showPermissionAlert = false
     @State private var permissionDeniedOnce = false
     @State var generatedImage: UIImage?
     @State var buttonDisabled: Bool = true
+    
+    // NEW: Track the CoreData record ID for this result
+    @State private var coreDataRecordIDs: [NSManagedObjectID] = []
     
     var body: some View {
         VStack(spacing: 0) {
@@ -53,10 +58,13 @@ struct ResultView: View {
                                 let uiImage = result.image
                                 generatedImage = uiImage
                                 buttonDisabled = false
+                                
+                                // NEW: Save to CoreData when image loads successfully
+                                saveToHistoryIfNeeded(image: uiImage, remoteURL: url)
                             }
                             .resizable()
-                            .scaledToFit() // This ensures proper aspect ratio within the container
-                            .padding(.horizontal, ScaleUtility.scaledSpacing(15)) // Same as ImagePreview
+                            .scaledToFit()
+                            .padding(.horizontal, ScaleUtility.scaledSpacing(15))
                             .frame(minHeight: isIPad ?  ScaleUtility.scaledValue(645) : ScaleUtility.scaledValue(345))
                             .overlay {
                                 Image(.imageBg)
@@ -75,9 +83,11 @@ struct ResultView: View {
                 FooterView(
                     onSave: {
                         saveImageToGallery()
-                    }, onDelete: {
-                        
-                    }, onShare: {
+                    },
+                    onDelete: {
+                        showDeleteConfirmation = true
+                    },
+                    onShare: {
                         shareImage()
                     },
                     generatedImage: $generatedImage,
@@ -103,8 +113,89 @@ struct ResultView: View {
                 }
             }
         }
+        // NEW: Delete confirmation dialog
+        .alert("Delete Image", isPresented: $showDeleteConfirmation) {
+            Button("Cancel", role: .cancel) { }
+            Button("Delete", role: .destructive) {
+                deleteImageFromHistory()
+            }
+        } message: {
+            Text("This will permanently delete the image from your history. This action cannot be undone.")
+        }
         .navigationBarHidden(true)
         .background(Color.secondaryApp.edgesIgnoringSafeArea(.all))
+    }
+    
+    // NEW: Save to CoreData history when image loads
+    private func saveToHistoryIfNeeded(image: UIImage, remoteURL: URL) {
+        // Only save if we haven't already saved this result
+        guard coreDataRecordIDs.isEmpty else { return }
+        
+        do {
+            // Save the image locally
+            let localURL = try LocalImageStore.shared.saveUIImage(image)
+            
+            // Save to CoreData history
+            let recordIDs = try CoreDataManager.shared.saveLocalHistory(
+                locals: [localURL],
+                remotes: [remoteURL],
+                isGenerated: viewModel.currentKind == .generated,
+                isEdited: viewModel.currentKind == .edited,
+                prompt: viewModel.currentPrompt,
+                source: viewModel.currentSource
+            )
+            
+            self.coreDataRecordIDs = recordIDs
+            
+        } catch {
+            print("Failed to save to history: \(error)")
+        }
+    }
+    
+    // NEW: Delete from both local storage and CoreData
+    private func deleteImageFromHistory() {
+        // Delete from CoreData
+        for recordID in coreDataRecordIDs {
+            do {
+                let context = PersistenceController.shared.container.viewContext
+                if let record = try? context.existingObject(with: recordID) as? ImageRecord {
+                    // Delete local file if it exists
+                    if let localPath = record.localPath {
+                        let baseFolder = getImagesDirectory()
+                        let fileURL = baseFolder.appendingPathComponent(localPath)
+                        try? FileManager.default.removeItem(at: fileURL)
+                    }
+                    
+                    // Delete CoreData record
+                    context.delete(record)
+                    try context.save()
+                }
+            } catch {
+                print("Failed to delete record: \(error)")
+            }
+        }
+        
+        // Clear the tracking array
+        coreDataRecordIDs = []
+        
+        // Show success message and go back
+        toastMessage = "Image deleted successfully"
+        showToast = true
+        
+        DispatchQueue.main.asyncAfter(deadline: .now() + 1.5) {
+            showToast = false
+            onBack()
+        }
+    }
+    
+    // Helper function to get images directory (same as LocalImageStore and CoreDataManager)
+    private func getImagesDirectory() -> URL {
+        let appSupport = FileManager.default.urls(for: .applicationSupportDirectory, in: .userDomainMask).first!
+        let folder = appSupport.appendingPathComponent("CarQ", isDirectory: true)
+        try? FileManager.default.createDirectory(at: folder, withIntermediateDirectories: true)
+        let images = folder.appendingPathComponent("Images", isDirectory: true)
+        try? FileManager.default.createDirectory(at: images, withIntermediateDirectories: true)
+        return images
     }
     
     // Function to save image to gallery
@@ -182,5 +273,4 @@ struct ResultView: View {
             }
         }.resume()
     }
-    
 }

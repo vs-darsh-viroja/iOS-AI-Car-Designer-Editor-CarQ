@@ -1,0 +1,158 @@
+//
+//  BrushAreaView.swift
+//  CarQ
+//
+//  Created by Purvi Sancheti on 11/09/25.
+//
+
+import SwiftUI
+// MARK: - Supporting Components for Brush System
+
+// Interactive view for brush/eraser
+struct BrushAreaView: View {
+    @Binding var brushedAreas: [CGRect]
+    @Binding var currentTool: MagicalModificationView.DrawingTool
+    @Binding var brushSize: CGFloat
+    var containerSize: CGSize
+    @Binding var imageFrame: CGRect
+
+    @State private var lastLocation: CGPoint?
+    @State private var isDrawing = false
+    @State private var cursorLocation: CGPoint?
+
+    var body: some View {
+        let bounds = CGRect(origin: .zero, size: containerSize)
+
+        ZStack {
+            Color.clear
+                .contentShape(Rectangle())
+                .frame(width: containerSize.width, height: containerSize.height)
+                .gesture(
+                    DragGesture(minimumDistance: 0, coordinateSpace: .local)
+                        .onChanged { value in
+                            let location = value.location
+                            guard bounds.contains(location) else { return }
+
+                            cursorLocation = location
+                            isDrawing = true
+
+                            if let last = lastLocation {
+                                // Interpolate for smooth strokes
+                                let dx = location.x - last.x
+                                let dy = location.y - last.y
+                                let distance = CGFloat(hypot(dx, dy))
+                                let step = max(1, brushSize / 6)
+                                if distance > step {
+                                    let steps = Int(distance / step)
+                                    for i in 1...steps {
+                                        let t = CGFloat(i) / CGFloat(steps)
+                                        let p = CGPoint(x: last.x + dx * t, y: last.y + dy * t)
+                                        if bounds.contains(p) { handleDrawing(at: p) }
+                                    }
+                                }
+                            }
+
+                            handleDrawing(at: location)
+                            lastLocation = location
+                        }
+                        .onEnded { _ in
+                            lastLocation = nil
+                            
+                            // Hide cursor after a short delay
+                            DispatchQueue.main.asyncAfter(deadline: .now() + 0.3) {
+                                if !isDrawing {
+                                    withAnimation(.easeOut(duration: 0.2)) {
+                                        cursorLocation = nil
+                                    }
+                                }
+                            }
+                            isDrawing = false
+                        }
+                )
+            
+            // Cursor indicator
+            if let location = cursorLocation {
+                CursorIndicator(
+                    toolType: currentTool,
+                    brushSize: brushSize,
+                    position: location
+                )
+                .allowsHitTesting(false)
+                .animation(.easeInOut(duration: 0.1), value: cursorLocation)
+            }
+        }
+    }
+
+    private func handleDrawing(at location: CGPoint) {
+        let half = brushSize / 2
+        let rect = CGRect(x: location.x - half, y: location.y - half, width: brushSize, height: brushSize)
+
+        switch currentTool {
+        case .brush:
+            brushedAreas.append(rect)
+            // Optional: coalesce recent overlapping rects to avoid huge arrays
+            if brushedAreas.count > 3000 {
+                brushedAreas = coalesced(brushedAreas)
+            }
+        case .eraser:
+            brushedAreas.removeAll { $0.intersects(rect) }
+        }
+    }
+
+    private func coalesced(_ rects: [CGRect]) -> [CGRect] {
+        // Very lightweight coalescing to keep memory in check
+        var out: [CGRect] = []
+        for r in rects {
+            if let i = out.firstIndex(where: { $0.intersects(r) || $0.insetBy(dx: -2, dy: -2).intersects(r) }) {
+                out[i] = out[i].union(r)
+            } else {
+                out.append(r)
+            }
+        }
+        return out
+    }
+}
+
+// MARK: - Cursor Indicator
+struct CursorIndicator: View {
+    let toolType: MagicalModificationView.DrawingTool
+    let brushSize: CGFloat
+    let position: CGPoint
+    
+    var body: some View {
+        ZStack {
+            // Size indicator circle
+            
+            Image(toolType == .brush ? .brushIcon2 : .eraserIcon2) // This will show the brush icon for both tools
+                .resizable()
+                .frame(width: ScaleUtility.scaledValue(brushSize), height: ScaleUtility.scaledValue(brushSize))
+         
+
+            //
+//            Circle()
+//                .stroke(toolType == .brush ? Color.white : Color.red, lineWidth: 2)
+//                .frame(width: brushSize, height: brushSize)
+//                .shadow(color: .black.opacity(0.3), radius: 2)
+//            
+//            // Center dot
+//            Circle()
+//                .fill(toolType == .brush ? Color.white : Color.red)
+//                .frame(width: 3, height: 3)
+//            
+//            // Tool icon above the circle
+//            VStack {
+//                Image(.brushIcon) // This will show the brush icon for both tools
+//                    .resizable()
+//                    .frame(width: 16, height: 16)
+//                    .foregroundColor(toolType == .brush ? .white : .red)
+//                    .padding(6)
+//                    .background(.ultraThinMaterial, in: RoundedRectangle(cornerRadius: 8))
+//                    .shadow(radius: 2)
+//                    .offset(y: -brushSize/2 - 18)
+//                
+//                Spacer()
+//            }
+        }
+        .position(position)
+    }
+}

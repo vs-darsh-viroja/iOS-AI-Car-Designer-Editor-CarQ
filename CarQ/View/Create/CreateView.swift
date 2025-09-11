@@ -82,6 +82,11 @@ struct CreateView: View {
                             designStyle: selectedDesignStyle.isEmpty ? nil : selectedDesignStyle,
                             accessory: selectedAccessory.isEmpty ? nil : selectedAccessory
                         )
+                        
+                        viewModel.currentKind = .generated
+                        viewModel.currentSource = "CreateView"
+                        viewModel.currentPrompt = prompt
+                        
 
                         let started = await viewModel.startTextJob(prompt: finalPrompt)
                         if started {

@@ -9,6 +9,20 @@ import Foundation
 import SwiftUI
 import PhotosUI
 
+// Alert types
+enum AlertType: Identifiable {
+    case saveResult(message: String)
+    case processingError(message: String)
+    
+    var id: Int {
+        switch self {
+        case .saveResult: return 0
+        case .processingError: return 1
+        }
+    }
+}
+
+
 struct MagicalModificationView: View {
     @State var selectedType: String = ""
     @StateObject private var keyboard = KeyboardResponder()
@@ -16,15 +30,12 @@ struct MagicalModificationView: View {
     @State var prompt: String = ""
     @FocusState private var searchFocused: Bool
     
+    // Image selection states
     @State private var showUploadSheet = false
-    
-    @State private var selectedCarItem: PhotosPickerItem? = nil
-    @State private var selectedCarUIImage: UIImage? = nil
-    @State private var selectedCarImage: Image? = nil
-    @State private var originalCarUIImage: UIImage? = nil // Keep original for reset
-    
-    @State private var showCameraPickerVenue = false
-    @State private var showPhotoPickerVenue = false
+    @State private var targetPhotoItem: PhotosPickerItem? = nil
+    @State private var selectedImage: UIImage?
+    @State private var showCameraPicker = false
+    @State private var showPhotoPicker = false
     
     @State private var showCameraPermissionAlert = false
     @State private var cameraDeniedOnce = false
@@ -34,6 +45,34 @@ struct MagicalModificationView: View {
     @State var selectedEraser: String = "Brush"
 
     @State private var drawingCanvasView: DrawingCanvasView? = nil
+
+    
+    @State private var resultImage: UIImage?
+    
+    @State private var isGenerated = false
+    @State private var loadingPercentage = 0
+    @State private var showPromptBox = false
+   
+
+    // Brush states
+    @State private var brushedAreas = [CGRect]()
+    @State private var currentTool: DrawingTool = .brush
+    @State private var brushSize: CGFloat = 20
+    @State private var imageFrame: CGRect = .zero
+    @State private var imageSize: CGSize = .zero
+    @State private var needsRedraw = false
+    
+    @State private var activeAlert: AlertType?
+    
+    @State var isProcessing: Bool = false
+    
+    @StateObject private var viewModel = GenerationViewModel()
+    
+    enum DrawingTool {
+        case brush
+        case eraser
+    }
+
     
     var body: some View {
         ZStack(alignment: .bottom) {
@@ -52,123 +91,8 @@ struct MagicalModificationView: View {
                         Spacer()
                             .frame(height: ScaleUtility.scaledValue(29))
                         
-                        VStack(spacing: ScaleUtility.scaledSpacing(20)) {
-                            
-                            if let image = selectedCarImage {
-                                ImageCard(
-                                    selectedEraser: $selectedEraser,
-                                    image: image,
-                                    uiImage: selectedCarUIImage,
-                                    onRemove: {
-                                        selectedCarImage = nil
-                                        selectedCarUIImage = nil
-                                        originalCarUIImage = nil
-                                        drawingCanvasView = nil
-                                    },
-                                    onReset: {
-                                        // Reset to original image
-                                        if let original = originalCarUIImage {
-                                            selectedCarUIImage = original
-                                            selectedCarImage = Image(uiImage: original)
-                                        }
-                                        // Clear any drawings
-                                        drawingCanvasView?.clearDrawing()
-                                    }
-                                )
-                            }
-                            else {
-                                Button(action: {
-                                    showUploadSheet = true
-                                }) {
-                                    UploadContainerView()
-                                }
-                            }
-                            
-                            
-                            VStack(spacing: ScaleUtility.scaledSpacing(13)) {
-                                Text("Change Type")
-                                    .font(FontManager.ChakraPetchSemiBoldFont(size: .scaledFontSize(18)))
-                                    .foregroundColor(Color.primaryApp)
-                                    .padding(.leading, ScaleUtility.scaledSpacing(15))
-                                    .frame(maxWidth: .infinity,alignment: .leading)
-                                
-                                HStack(spacing: isIPad ? ScaleUtility.scaledSpacing(16) : ScaleUtility.scaledSpacing(6)) {
-                                    
-                                    Button {
-                                        selectedType = "Resize"
-                                    } label: {
-                                        Image(.selectionBg1)
-                                            .resizable()
-                                            .frame(width: isIPad ? ScaleUtility.scaledValue(231) : ScaleUtility.scaledValue(111),
-                                                   height: isIPad ? ScaleUtility.scaledValue(60) : ScaleUtility.scaledValue(40))
-                                            .overlay {
-                                                Text("Resize")
-                                                    .font(FontManager.ChakraPetchRegularFont(size: .scaledFontSize(16)))
-                                                    .foregroundColor(Color.primaryApp.opacity(0.4))
-                                            }
-                                            .overlay {
-                                                if selectedType == "Resize" {
-                                                    Image(.selectionOverlay1)
-                                                        .resizable()
-                                                        .frame(width: isIPad ? ScaleUtility.scaledValue(231) : ScaleUtility.scaledValue(111),
-                                                               height: isIPad ? ScaleUtility.scaledValue(60) : ScaleUtility.scaledValue(40))
-                                                }
-                                            }
-                                    }
-                                    
-                                    Button {
-                                        selectedType = "Reshape"
-                                    } label: {
-                                        Image(.selectionBg1)
-                                            .resizable()
-                                            .frame(width: isIPad ? ScaleUtility.scaledValue(231) : ScaleUtility.scaledValue(111),
-                                                   height: isIPad ? ScaleUtility.scaledValue(60) : ScaleUtility.scaledValue(40))
-                                            .overlay {
-                                                Text("Reshape")
-                                                    .font(FontManager.ChakraPetchRegularFont(size: .scaledFontSize(16)))
-                                                    .foregroundColor(Color.primaryApp.opacity(0.4))
-                                                
-                                            }
-                                            .overlay {
-                                                if selectedType == "Reshape" {
-                                                    Image(.selectionOverlay1)
-                                                        .resizable()
-                                                        .frame(width: isIPad ? ScaleUtility.scaledValue(231) : ScaleUtility.scaledValue(111),
-                                                               height: isIPad ? ScaleUtility.scaledValue(60) : ScaleUtility.scaledValue(40))
-                                                }
-                                            }
-                                    }
-                                    
-                                    Button {
-                                        selectedType = "Redesign"
-                                    } label: {
-                                        Image(.selectionBg1)
-                                            .resizable()
-                                            .frame(width: isIPad ? ScaleUtility.scaledValue(231) : ScaleUtility.scaledValue(111),
-                                                   height: isIPad ? ScaleUtility.scaledValue(60) : ScaleUtility.scaledValue(40))
-                                            .overlay {
-                                                Text("Redesign")
-                                                    .font(FontManager.ChakraPetchRegularFont(size: .scaledFontSize(16)))
-                                                    .foregroundColor(Color.primaryApp.opacity(0.4))
-                                            }
-                                            .overlay {
-                                                if selectedType == "Redesign" {
-                                                    Image(.selectionOverlay1)
-                                                        .resizable()
-                                                        .frame(width: isIPad ? ScaleUtility.scaledValue(231) : ScaleUtility.scaledValue(111),
-                                                               height: isIPad ? ScaleUtility.scaledValue(60) : ScaleUtility.scaledValue(40))
-                                                }
-                                            }
-                                    }
-                                    
-                                    
-                                }
-                            }
-                            
-                            PromptView(prompt: $prompt, isInputFocused: $searchFocused)
-                            
-                            
-                            
+                        VStack(spacing: 0) {
+                            mainBrushInterface()
                         }
                         
                         if keyboard.currentHeight > 0 {
@@ -207,39 +131,72 @@ struct MagicalModificationView: View {
             .frame(maxWidth: .infinity,maxHeight: .infinity)
             
             
-            GenerateButtonView(isDisabled: true, action: {
-                
+            GenerateButtonView(isDisabled: false,  action: {
+                if brushedAreas.isEmpty {
+                       activeAlert = .processingError(message: "Please brush areas you want to modify")
+                   } else if prompt.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty {
+                       activeAlert = .processingError(message: "Please enter a prompt to describe the desired changes")
+                   } else {
+//                       generateMagicBrush()
+                       isProcessing = true
+                   }
             })
             
             
             
         }
-        .alert(isPresented: $showToast) {
-            Alert(
-                title: Text("Error"),
-                message: Text(toastMessage),
-                dismissButton: .default(Text("OK")) {
-                    showToast = false
-                }
-            )
-        }
-        // VENUE
-        .onChange(of: selectedCarItem) { _, newItem in
-            guard let newItem else { return }
+        .onChange(of: targetPhotoItem) { newItem in
             Task {
-                if let data = try? await newItem.loadTransferable(type: Data.self),
-                   let ui = UIImage(data: data) {
-                    selectedCarUIImage = ui
-                    selectedCarImage = Image(uiImage: ui)
+                if let newItem = newItem {
+                    if let data = try? await newItem.loadTransferable(type: Data.self) {
+                        if let image = UIImage(data: data) {
+                            selectedImage = image
+                            resetDrawing()
+                        }
+                    }
                 }
             }
         }
-        .alert("Camera Access Needed", isPresented: $showCameraPermissionAlert) {
-            Button("Cancel", role: .cancel) { }
-            Button("Open Settings") { if let url = URL(string: UIApplication.openSettingsURLString) { UIApplication.shared.open(url) } }
-        } message: {
-            Text("Please enable Camera access in Settings to take a photo.")
-        }
+        .navigationDestination(isPresented: $isProcessing) {
+                ProcessingView(
+                    viewModel: viewModel,
+                    onBack: { isProcessing = false },
+                    onAppear: {
+                        Task {
+                            guard let originalImage = selectedImage,
+                                  let maskImage = createMaskImage()
+                            else {
+                                viewModel.errorMessage = "Failed to create mask image"
+                                viewModel.shouldReturn = true
+                                return
+                            }
+
+                            viewModel.currentKind = .edited
+                            viewModel.currentSource = "MagicalModificationView"
+                            viewModel.currentPrompt = prompt
+                            
+                            let finalPrompt = PromptBuilder.buildMagicalModificationPrompt(
+                                userPrompt: prompt,
+                                changeType: selectedType
+                            )
+                            
+                            let started = await viewModel.startMagicalModificationJob(
+                                image: originalImage,
+                                maskImage: maskImage,
+                                prompt: finalPrompt
+                            )
+                            
+                            
+                            
+                            if started {
+                                await viewModel.pollUntilReady()
+                            } else {
+                                viewModel.shouldReturn = true
+                            }
+                        }
+                    }
+                )
+            }
         .sheet(isPresented: $showUploadSheet) {
             UploadImageSheetView(showSheet: $showUploadSheet,
                                  onCameraTap: {
@@ -247,7 +204,7 @@ struct MagicalModificationView: View {
                 Task { @MainActor in
                     if await CameraAuth.requestIfNeeded() {
                         try? await Task.sleep(nanoseconds: 300_000_000)
-                        showCameraPickerVenue = true
+                        showCameraPicker = true
                         
                     } else {
                         cameraDeniedOnce = (CameraAuth.status() != .notDetermined)
@@ -259,7 +216,7 @@ struct MagicalModificationView: View {
                                  onGalleryTap: {
                 showUploadSheet = false
                 DispatchQueue.main.asyncAfter(deadline: .now() + 0.3) {
-                    showPhotoPickerVenue = true
+                    showPhotoPicker = true
                     
                 }
             })
@@ -267,15 +224,359 @@ struct MagicalModificationView: View {
             .presentationCornerRadius(25)
             .presentationDragIndicator(.visible)
         }
-        .sheet(isPresented: $showCameraPickerVenue) {
-            CameraPicker(image: $selectedCarImage, uiImage: $selectedCarUIImage)
+        .fullScreenCover(isPresented: $showCameraPicker) {
+            ImagePicker(sourceType: .camera) { image in
+                selectedImage = image
+                resetDrawing()
+            }
         }
-        .photosPicker(isPresented: $showPhotoPickerVenue, selection: $selectedCarItem, matching: .images)
+        .alert(item: $activeAlert) { alertType in
+            switch alertType {
+            case .saveResult(let message):
+                return Alert(
+                    title: Text("Save Result"),
+                    message: Text(message),
+                    dismissButton: .default(Text("OK"))
+                )
+            case .processingError(let message):
+                return Alert(
+                    title: Text("Error"),
+                    message: Text(message),
+                    dismissButton: .default(Text("OK"))
+                )
+            }
+        }
+        .photosPicker(isPresented: $showPhotoPicker, selection: $targetPhotoItem, matching: .images)
         .ignoresSafeArea(.container, edges: [.bottom])
         .toolbar(.hidden, for: .navigationBar)
         .ignoresSafeArea(.keyboard)
         .navigationBarHidden(true)
         .background(Color.secondaryApp.edgesIgnoringSafeArea(.all))
-       
+        .alert("Camera Access Needed", isPresented: $showCameraPermissionAlert) {
+            Button("Cancel", role: .cancel) { }
+            Button("Open Settings") { if let url = URL(string: UIApplication.openSettingsURLString) { UIApplication.shared.open(url) } }
+        } message: {
+            Text("Please enable Camera access in Settings to take a photo.")
+        }
     }
+    
+    
+    private func mainBrushInterface() -> some View {
+        VStack(spacing: 20) {
+            // Image and Brush area
+            if let selectedImage = selectedImage {
+                imageCanvasView(selectedImage: selectedImage)
+            }  else {
+                Button(action: {
+                    showUploadSheet = true
+                }) {
+                    UploadContainerView()
+                }
+            }
+            
+            
+            if let selectedImage = selectedImage {
+                brushControlsSection
+            }
+         
+            
+            VStack(spacing: ScaleUtility.scaledSpacing(13)) {
+                Text("Change Type")
+                    .font(FontManager.ChakraPetchSemiBoldFont(size: .scaledFontSize(18)))
+                    .foregroundColor(Color.primaryApp)
+                    .padding(.leading, ScaleUtility.scaledSpacing(15))
+                    .frame(maxWidth: .infinity,alignment: .leading)
+                
+                HStack(spacing: isIPad ? ScaleUtility.scaledSpacing(16) : ScaleUtility.scaledSpacing(6)) {
+                    
+                    Button {
+                        selectedType = "Resize"
+                    } label: {
+                        Image(.selectionBg1)
+                            .resizable()
+                            .frame(width: isIPad ? ScaleUtility.scaledValue(231) : ScaleUtility.scaledValue(111),
+                                   height: isIPad ? ScaleUtility.scaledValue(60) : ScaleUtility.scaledValue(40))
+                            .overlay {
+                                Text("Resize")
+                                    .font(FontManager.ChakraPetchRegularFont(size: .scaledFontSize(16)))
+                                    .foregroundColor(Color.primaryApp.opacity(0.4))
+                            }
+                            .overlay {
+                                if selectedType == "Resize" {
+                                    Image(.selectionOverlay1)
+                                        .resizable()
+                                        .frame(width: isIPad ? ScaleUtility.scaledValue(231) : ScaleUtility.scaledValue(111),
+                                               height: isIPad ? ScaleUtility.scaledValue(60) : ScaleUtility.scaledValue(40))
+                                }
+                            }
+                    }
+                    
+                    Button {
+                        selectedType = "Reshape"
+                    } label: {
+                        Image(.selectionBg1)
+                            .resizable()
+                            .frame(width: isIPad ? ScaleUtility.scaledValue(231) : ScaleUtility.scaledValue(111),
+                                   height: isIPad ? ScaleUtility.scaledValue(60) : ScaleUtility.scaledValue(40))
+                            .overlay {
+                                Text("Reshape")
+                                    .font(FontManager.ChakraPetchRegularFont(size: .scaledFontSize(16)))
+                                    .foregroundColor(Color.primaryApp.opacity(0.4))
+                                
+                            }
+                            .overlay {
+                                if selectedType == "Reshape" {
+                                    Image(.selectionOverlay1)
+                                        .resizable()
+                                        .frame(width: isIPad ? ScaleUtility.scaledValue(231) : ScaleUtility.scaledValue(111),
+                                               height: isIPad ? ScaleUtility.scaledValue(60) : ScaleUtility.scaledValue(40))
+                                }
+                            }
+                    }
+                    
+                    Button {
+                        selectedType = "Redesign"
+                    } label: {
+                        Image(.selectionBg1)
+                            .resizable()
+                            .frame(width: isIPad ? ScaleUtility.scaledValue(231) : ScaleUtility.scaledValue(111),
+                                   height: isIPad ? ScaleUtility.scaledValue(60) : ScaleUtility.scaledValue(40))
+                            .overlay {
+                                Text("Redesign")
+                                    .font(FontManager.ChakraPetchRegularFont(size: .scaledFontSize(16)))
+                                    .foregroundColor(Color.primaryApp.opacity(0.4))
+                            }
+                            .overlay {
+                                if selectedType == "Redesign" {
+                                    Image(.selectionOverlay1)
+                                        .resizable()
+                                        .frame(width: isIPad ? ScaleUtility.scaledValue(231) : ScaleUtility.scaledValue(111),
+                                               height: isIPad ? ScaleUtility.scaledValue(60) : ScaleUtility.scaledValue(40))
+                                }
+                            }
+                    }
+                    
+                    
+                }
+            }
+            
+            PromptView(prompt: $prompt, isInputFocused: $searchFocused)
+            
+            
+            
+        }
+    }
+    
+    private func imageCanvasView(selectedImage: UIImage) -> some View {
+        GeometryReader { geometry in
+            ZStack(alignment: .center) {
+                Image(uiImage: selectedImage)
+                    .resizable()
+                    .scaledToFit()
+                    .background(
+                        GeometryReader { imageGeometry -> Color in
+                            let frame = imageGeometry.frame(in: .local)
+                            DispatchQueue.main.async {
+                                self.imageFrame = frame
+                                self.imageSize = selectedImage.size
+                            }
+                            return Color.clear
+                        }
+                    )
+                    .overlay {
+                           // Background overlay
+                           Image(.imageBg)
+                               .resizable()
+                               .scaledToFit()
+                               .background(
+                                   GeometryReader { imageGeometry -> Color in
+                                       let frame = imageGeometry.frame(in: .local)
+                                       DispatchQueue.main.async {
+                                           self.imageFrame = frame
+                                           self.imageSize = selectedImage.size
+                                       }
+                                       return Color.clear
+                                   }
+                               )
+                       }
+                    .overlay(
+                        ZStack {
+                            // Red overlay for brushed areas
+                            if !brushedAreas.isEmpty || needsRedraw {
+                                RedOverlayView(
+                                    rects: $brushedAreas,
+                                    imageSize: imageFrame.size,
+                                    brushSize: brushSize
+                                )
+                                .allowsHitTesting(false)
+                            }
+                            
+                            // Interactive brush area
+                            BrushAreaView(
+                                brushedAreas: $brushedAreas,
+                                currentTool: $currentTool,
+                                brushSize: $brushSize,
+                                containerSize: imageFrame.size,
+                                imageFrame: $imageFrame
+                            )
+                        }
+                        .clipped()
+                    )
+                    .cornerRadius(15)
+                    .overlay(
+                        //Remove Image
+                        Button{
+                            clearSelectedImage()
+
+                        }label: {
+                            Image(.crossIcon2)
+                                .resizable()
+                                .frame(width: ScaleUtility.scaledValue(18), height: ScaleUtility.scaledValue(18))
+                                .padding(.all, ScaleUtility.scaledSpacing(5))
+                                .background(Color.primaryApp.opacity(0.1))
+                                .cornerRadius(30)
+                                .overlay(
+                                    RoundedRectangle(cornerRadius: 30)
+                                        .stroke(Color.primaryApp.opacity(0.2), lineWidth: 1)
+                                )
+                        }.offset(x: ScaleUtility.scaledSpacing(-15), y: ScaleUtility.scaledSpacing(15)),alignment:.topTrailing
+                    )
+            }
+            .frame(width: geometry.size.width, height: min(geometry.size.height, ScaleUtility.scaledValue(345)))
+        }
+        .padding(.horizontal, ScaleUtility.scaledSpacing(15))
+        .frame(height: ScaleUtility.scaledValue(345))
+    }
+    
+    private var brushControlsSection: some View {
+        VStack(spacing: 25) {
+           
+            // Tool buttons
+            HStack(spacing: 10) {
+                ToolButton(
+                    title: "Bursh",
+                    isSelected: currentTool == .brush,
+                    action: { currentTool = .brush }
+                )
+                
+                ToolButton(
+                    title: "Eraser",
+                    isSelected: currentTool == .eraser,
+                    action: { currentTool = .eraser }
+                )
+                Spacer()
+                ToolButton(
+                    title: "Reset",
+                    isSelected: false,
+                    action: { resetDrawing() }
+                )
+            }
+            
+            // Brush size slider
+            CustomSlider(value: $brushSize, actionType: $currentTool, range: 5...50)
+            
+        }.padding(.horizontal)
+    }
+ 
+    // MARK: - Binary (B/W) grayscale mask builder
+    private func createMaskImage() -> UIImage? {
+        guard let baseImage = selectedImage else { return nil }
+        guard imageFrame.width > 0, imageFrame.height > 0 else { return nil }
+        
+        let originalSize = baseImage.size
+        let scaleFactor = baseImage.scale
+        
+        let format = UIGraphicsImageRendererFormat()
+        format.scale = 1.0
+        let renderer = UIGraphicsImageRenderer(size: originalSize, format: format)
+        
+        let brushedImage = renderer.image { ctx in
+            // Draw the original image first
+            baseImage.draw(in: CGRect(origin: .zero, size: originalSize))
+            
+            // Draw brush marks on top
+            let sx = originalSize.width / imageFrame.width
+            let sy = originalSize.height / imageFrame.height
+            
+            for rect in brushedAreas {
+                let scaledRect = CGRect(
+                    x: rect.origin.x * sx,
+                    y: rect.origin.y * sy,
+                    width: rect.size.width * sx,
+                    height: rect.size.height * sy
+                )
+                
+                // Draw semi-transparent red circle to mark brushed areas
+                UIColor.red.withAlphaComponent(0.5).setFill()
+                let circlePath = UIBezierPath(ovalIn: scaledRect)
+                circlePath.fill()
+            }
+        }
+        
+        return UIImage(cgImage: brushedImage.cgImage!, scale: scaleFactor, orientation: baseImage.imageOrientation)
+    }
+
+    
+//    private func createBinaryMaskImage() -> UIImage? {
+//        guard let baseImage = selectedImage else { return nil }
+//        guard imageFrame.width > 0, imageFrame.height > 0 else { return nil }
+//
+//        let originalSize = baseImage.size
+//
+//        // Offscreen renderer at the original image size; opaque to produce clean B/W mask
+//        let format = UIGraphicsImageRendererFormat()
+//        format.scale = 1.0
+//        format.opaque = true
+//
+//        let renderer = UIGraphicsImageRenderer(size: originalSize, format: format)
+//
+//        let maskImage = renderer.image { ctx in
+//            // Start fully black (protect all pixels by default)
+//            UIColor.black.setFill()
+//            ctx.fill(CGRect(origin: .zero, size: originalSize))
+//
+//            // Scale brushed rects from view space -> image pixel space
+//            let sx = originalSize.width / imageFrame.width
+//            let sy = originalSize.height / imageFrame.height
+//
+//            // Paint the selected regions in pure white
+//            UIColor.white.setFill()
+//            for rect in brushedAreas {
+//                let scaledRect = CGRect(
+//                    x: rect.origin.x * sx,
+//                    y: rect.origin.y * sy,
+//                    width: rect.size.width * sx,
+//                    height: rect.size.height * sy
+//                )
+//                UIBezierPath(ovalIn: scaledRect).fill()
+//            }
+//        }
+//
+//        // Prefer PNG (lossless) for binary masks
+//        return maskImage
+//    }
+
+    
+    private func resetDrawing() {
+        brushedAreas = []
+        needsRedraw.toggle()
+    }
+    private func clearSelectedImage() {
+        selectedImage = nil
+        resetDrawing()
+        resultImage = nil
+        isGenerated = false
+        prompt = ""
+        
+    }
+    private func resetAndTryAgain() {
+        isGenerated = false
+        resultImage = nil
+        loadingPercentage = 0
+        showPromptBox = false
+        prompt = ""
+        resetDrawing()
+    }
+    
+    
 }

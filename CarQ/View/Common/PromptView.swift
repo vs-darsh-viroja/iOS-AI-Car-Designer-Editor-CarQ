@@ -37,7 +37,7 @@ struct PromptView: View {
                                 .background(.clear)
                                 .foregroundColor(Color.primaryApp)
                                 .offset(x: ScaleUtility.scaledSpacing(-3), y: ScaleUtility.scaledSpacing(-7))
-                            
+                      
                         }
                         
                         Spacer()
