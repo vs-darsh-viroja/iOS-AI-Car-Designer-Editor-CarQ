@@ -7,13 +7,15 @@
 
 import Foundation
 import CoreData
+import OSLog
 
 final class CoreDataManager {
     static let shared = CoreDataManager()
     private init() {}
     private var ctx: NSManagedObjectContext { PersistenceController.shared.container.viewContext }
-
+    private let coreLogger = Logger(subsystem: "CarQ", category: "CoreDataManager")
     @discardableResult
+    // CoreDataManager.swift
     func saveLocalHistory(
         locals: [URL],
         remotes: [URL?],
@@ -22,31 +24,31 @@ final class CoreDataManager {
         prompt: String?,
         source: String?
     ) throws -> [NSManagedObjectID] {
-        let now = Date()
-        var ids: [NSManagedObjectID] = []
-        
-        // Get the base folder to calculate relative paths
-        let baseFolder = getImagesDirectory()
-        
+        var inserted: [NSManagedObject] = []
+
         for (idx, fileURL) in locals.enumerated() {
             let rec = NSEntityDescription.insertNewObject(forEntityName: "ImageRecord", into: ctx)
             rec.setValue(UUID().uuidString, forKey: "id")
-            
-            // Store relative path instead of full path
-            let relativePath = fileURL.lastPathComponent // Just the filename
-            rec.setValue(relativePath, forKey: "localPath")
-            
+            rec.setValue(fileURL.lastPathComponent, forKey: "localPath")
             rec.setValue(remotes[idx]?.absoluteString, forKey: "remoteURL")
-            rec.setValue(now,                 forKey: "createdAt")
-            rec.setValue(isGenerated,         forKey: "isGenerated")
-            rec.setValue(isEdited,            forKey: "isEdited")
-            rec.setValue(prompt,              forKey: "prompt")
-            rec.setValue(source,              forKey: "source")
-            ids.append(rec.objectID)
+            rec.setValue(Date(), forKey: "createdAt")
+            rec.setValue(isGenerated, forKey: "isGenerated")
+            rec.setValue(isEdited, forKey: "isEdited")
+            rec.setValue(prompt, forKey: "prompt")
+            rec.setValue(source, forKey: "source")
+            inserted.append(rec)
+        }
+
+        // 🔑 Make objectIDs permanent, then save
+        if !inserted.isEmpty {
+            try ctx.obtainPermanentIDs(for: inserted)
         }
         if ctx.hasChanges { try ctx.save() }
-        return ids
+
+        // Now their objectID values are permanent & valid to use outside
+        return inserted.map { $0.objectID }
     }
+
     
     func fetchHistory(kind: HistoryKind?, newestFirst: Bool) throws -> [ImageRecord] {
         let req = NSFetchRequest<NSManagedObject>(entityName: "ImageRecord")
@@ -69,105 +71,58 @@ final class CoreDataManager {
     
     // NEW: Delete a specific record by its ObjectID
     func deleteRecord(objectID: NSManagedObjectID) throws {
+        let beforeCount = try fetchHistory(kind: nil, newestFirst: true).count
+        coreLogger.info("deleteRecord start. Total before: \(beforeCount)")
+
         guard let record = try? ctx.existingObject(with: objectID) as? ImageRecord else {
+            coreLogger.error("deleteRecord: record not found for \(String(describing: objectID))")
             throw CoreDataError.recordNotFound
         }
-        
-        // Delete the local file if it exists
+
         if let localPath = record.localPath {
-            let baseFolder = getImagesDirectory()
-            let fileURL = baseFolder.appendingPathComponent(localPath)
+            let fileURL = getImagesDirectory().appendingPathComponent(localPath)
+            let existed = FileManager.default.fileExists(atPath: fileURL.path)
             try? FileManager.default.removeItem(at: fileURL)
+            coreLogger.info("Tried removing file '\(fileURL.lastPathComponent)'. Existed before? \(existed, privacy: .public)")
         }
-        
-        // Delete the CoreData record
+
         ctx.delete(record)
         if ctx.hasChanges { try ctx.save() }
-    }
-    
-    // NEW: Delete multiple records by their ObjectIDs
-    func deleteRecords(objectIDs: [NSManagedObjectID]) throws {
-        for objectID in objectIDs {
-            do {
-                try deleteRecord(objectID: objectID)
-            } catch {
-                print("Failed to delete record with ID \(objectID): \(error)")
-                // Continue with other deletions even if one fails
-            }
-        }
-    }
-    
-    // NEW: Delete a record by finding it with specific criteria
-    func deleteRecordByCriteria(localPath: String? = nil, remoteURL: String? = nil) throws {
-        let req = NSFetchRequest<NSManagedObject>(entityName: "ImageRecord")
-        var predicates: [NSPredicate] = []
-        
-        if let localPath = localPath {
-            predicates.append(NSPredicate(format: "localPath == %@", localPath))
-        }
-        
-        if let remoteURL = remoteURL {
-            predicates.append(NSPredicate(format: "remoteURL == %@", remoteURL))
-        }
-        
-        guard !predicates.isEmpty else {
-            throw CoreDataError.invalidCriteria
-        }
-        
-        req.predicate = NSCompoundPredicate(andPredicateWithSubpredicates: predicates)
-        
-        let records = try (ctx.fetch(req) as? [ImageRecord]) ?? []
-        
-        for record in records {
-            // Delete local file
-            if let localPath = record.localPath {
-                let baseFolder = getImagesDirectory()
-                let fileURL = baseFolder.appendingPathComponent(localPath)
-                try? FileManager.default.removeItem(at: fileURL)
-            }
-            
-            // Delete CoreData record
-            ctx.delete(record)
-        }
-        
-        if ctx.hasChanges { try ctx.save() }
-    }
-    
-    func deleteHistory(kind: HistoryKind?) throws {
-         let req = NSFetchRequest<NSFetchRequestResult>(entityName: "ImageRecord")
-         var preds: [NSPredicate] = []
 
-         if let kind {
-             switch kind {
-             case .generated:
-                 preds.append(NSPredicate(format: "isGenerated == YES"))
-             case .edited:
-                 preds.append(NSPredicate(format: "isEdited == YES"))
-             }
-         }
-         if !preds.isEmpty {
-             req.predicate = NSCompoundPredicate(andPredicateWithSubpredicates: preds)
-         }
-         
-         // First fetch the records to delete their local files
-         let fetchReq = NSFetchRequest<NSManagedObject>(entityName: "ImageRecord")
-         fetchReq.predicate = req.predicate
-         let recordsToDelete = try (ctx.fetch(fetchReq) as? [ImageRecord]) ?? []
-         
-         // Delete local files
-         let baseFolder = getImagesDirectory()
-         for record in recordsToDelete {
-             if let localPath = record.localPath {
-                 let fileURL = baseFolder.appendingPathComponent(localPath)
-                 try? FileManager.default.removeItem(at: fileURL)
-             }
-         }
-         
-         // Batch delete from CoreData
-         let deleteRequest = NSBatchDeleteRequest(fetchRequest: req)
-         try ctx.execute(deleteRequest)
-         try ctx.save()
-     }
+        let afterCount = try fetchHistory(kind: nil, newestFirst: true).count
+        coreLogger.info("deleteRecord done. Total after: \(afterCount)")
+    }
+
+
+    func deleteHistory(kind: HistoryKind?) throws {
+        let req = NSFetchRequest<NSFetchRequestResult>(entityName: "ImageRecord")
+        var preds: [NSPredicate] = []
+        if let kind {
+            switch kind {
+            case .generated: preds.append(NSPredicate(format: "isGenerated == YES"))
+            case .edited:    preds.append(NSPredicate(format: "isEdited == YES"))
+            }
+        }
+        if !preds.isEmpty { req.predicate = NSCompoundPredicate(andPredicateWithSubpredicates: preds) }
+
+        // delete files first
+        let fetchReq = NSFetchRequest<NSManagedObject>(entityName: "ImageRecord")
+        fetchReq.predicate = req.predicate
+        let recordsToDelete = try (ctx.fetch(fetchReq) as? [ImageRecord]) ?? []
+        let base = getImagesDirectory()
+        for record in recordsToDelete {
+            if let localPath = record.localPath {
+                try? FileManager.default.removeItem(at: base.appendingPathComponent(localPath))
+            }
+        }
+
+        // batch delete records
+        let deleteRequest = NSBatchDeleteRequest(fetchRequest: req)
+        try ctx.execute(deleteRequest)
+        try ctx.save()
+        coreLogger.info("deleteHistory completed. Removed \(recordsToDelete.count) records")
+    }
+
     
     // Helper function to get the images directory
     private func getImagesDirectory() -> URL {

@@ -8,6 +8,23 @@
 import Foundation
 
 public enum PromptBuilder {
+    
+    // Optional vocab (use the strings your Finish/Effect pickers emit)
+     private static let finishPrompts: [String: String] = [
+         "Gloss": "high-gloss clearcoat finish with crisp reflections",
+         "Matte": "matte paint finish with soft, diffuse reflections",
+         "Satin": "satin paint finish with gentle sheen",
+         "Metallic": "metallic flake finish that subtly sparkles"
+     ]
+
+     private static let effectPrompts: [String: String] = [
+         "Pearlescent": "pearlescent effect with color shift under light",
+         "Chrome": "chrome-like reflective effect (keep within realistic paint behavior)",
+         "Two-Tone": "two-tone paint layout with tasteful separation lines",
+         "Candy": "candy coat depth with rich, translucent layers"
+     ]
+
+    
     // MARK: - Vocab Maps (keys must match UI values exactly)
     private static let carTypePrompts: [String: String] = [
         "Sedan": "sleek sedan silhouette, four-door configuration, balanced proportions",
@@ -183,6 +200,56 @@ public enum PromptBuilder {
         parts.append("High quality result with professional automotive finish. No distortions or unrealistic elements.")
         parts.append("Preserve the overall vehicle structure and only modify the specifically marked regions.")
 
+        return parts.joined(separator: " ")
+    }
+    
+    /// NEW: Change Color prompt (image → image)
+     public static func buildChangeColorPrompt(
+         colorKey: String?,          // e.g. "blackIColor" or "custom"
+         customColorHex: String?,    // if colorKey == "custom"
+         finish: String?,            // optional (e.g. "Matte", "Gloss")
+         effect: String?             // optional (e.g. "Pearlescent")
+     ) -> String {
+         var parts: [String] = []
+
+         // Color (required)
+         if let key = colorKey {
+             if key == "custom", let hex = customColorHex, !hex.isEmpty {
+                 parts.append("Change the car body to exact paint color \(hex)")
+             } else if let preset = colorPrompts[key] {
+                 parts.append(preset.replacingOccurrences(of: "primary body color:", with: "Change the car body to"))
+             }
+         }
+
+         // Finish (optional)
+         if let f = finish, let fText = finishPrompts[f] ?? (f.isEmpty ? nil : "\(f.lowercased()) paint finish") {
+             parts.append(fText)
+         }
+
+         // Special Effect (optional)
+         if let e = effect, let eText = effectPrompts[e] ?? (e.isEmpty ? nil : "\(e.lowercased()) effect") {
+             parts.append(eText)
+         }
+
+         // Guardrails (keep result realistic)
+         parts.append("Apply recolor realistically to painted body panels only; do not change glass, lights, tires, or wheels.")
+         parts.append("Maintain original shading, reflections, highlights and body lines; no warping or extra parts.")
+         parts.append("High quality automotive render, consistent perspective, no text or logos.")
+
+         return parts.joined(separator: " ")
+     }
+    
+    public static func buildRemoveObjectPrompt(objectHints: [String]? = nil) -> String {
+        var parts: [String] = []
+        if let hints = objectHints, !hints.isEmpty {
+            parts.append("Remove the highlighted parts: \(hints.joined(separator: ", ")).")
+        } else {
+            parts.append("Remove the highlighted parts from the car (e.g., lights, sunroof, badges).")
+        }
+        parts.append("Use inpainting to realistically fill the removed regions with surrounding car surfaces.")
+        parts.append("Preserve original lighting, reflections, body lines, perspective, and environment.")
+        parts.append("Only modify masked areas; do not alter glass, tires, wheels, or unmasked panels.")
+        parts.append("High-quality, artifact-free result with seamless blending.")
         return parts.joined(separator: " ")
     }
 }

@@ -21,12 +21,13 @@ final class LocalImageStore {
 
     private var baseFolder: URL {
         let appSupport = FileManager.default.urls(for: .applicationSupportDirectory, in: .userDomainMask).first!
-        let folder = appSupport.appendingPathComponent("EveCraft", isDirectory: true)
+        let folder = appSupport.appendingPathComponent("CarQ", isDirectory: true)
         try? FileManager.default.createDirectory(at: folder, withIntermediateDirectories: true)
         let images = folder.appendingPathComponent(folderName, isDirectory: true)
         try? FileManager.default.createDirectory(at: images, withIntermediateDirectories: true)
         return images
     }
+    
 
     /// Downloads a remote image URL and persists it as JPEG (quality 0.95). Returns local file URL.
     func cacheRemoteImage(_ remote: URL, as filename: String = UUID().uuidString) async throws -> URL {

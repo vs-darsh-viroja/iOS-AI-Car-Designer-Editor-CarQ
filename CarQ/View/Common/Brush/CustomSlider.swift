@@ -9,16 +9,17 @@
 import SwiftUI
 
 
-struct CustomSlider: View {
+
+// MARK: - Updated Custom Slider (Reusable)
+struct ReusableCustomSlider: View {
     @Binding var value: CGFloat
-    @Binding var actionType:MagicalModificationView.DrawingTool
+    @Binding var actionType: DrawingTool // Using shared enum
     let range: ClosedRange<CGFloat>
 
-    let sliderWidth: CGFloat = ScaleUtility.scaledValue( ScaleUtility.isPad() ? 400 : 345)
+    let sliderWidth: CGFloat = ScaleUtility.scaledValue(ScaleUtility.isPad() ? 400 : 345)
     let trackHeight: CGFloat = 8
     let thumbSize: CGFloat = 32
     let innerDotSize: CGFloat = 8
-    
 
     var body: some View {
         let progress = CGFloat((value - range.lowerBound) / (range.upperBound - range.lowerBound))
@@ -47,7 +48,6 @@ struct CustomSlider: View {
                     RoundedRectangle(cornerRadius: 28)
                         .stroke(Color.primaryApp, lineWidth: 1)
                 )
-
                 .offset(x: sliderWidth * progress - thumbSize / 2)
                 .gesture(
                     DragGesture()
@@ -61,7 +61,3 @@ struct CustomSlider: View {
         .frame(width: sliderWidth, height: max(trackHeight, thumbSize))
     }
 }
-
-
-
-

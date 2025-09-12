@@ -10,11 +10,13 @@ import SwiftUI
 @main
 struct CarQApp: App {
     let persistenceController = PersistenceController.shared
+    @StateObject private var userSettings = UserSettings()
     
     var body: some Scene {
         WindowGroup {
             ContentView()
                 .environment(\.managedObjectContext, persistenceController.container.viewContext)
+                .environmentObject(userSettings)
         }
     }
 }

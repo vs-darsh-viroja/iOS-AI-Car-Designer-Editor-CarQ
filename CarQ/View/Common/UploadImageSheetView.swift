@@ -20,8 +20,8 @@ struct UploadImageSheetView: View {
                 
                 EllipticalGradient(
                     stops: [
-                        Gradient.Stop(color: .white.opacity(0.2), location: 0.00),
-                        Gradient.Stop(color: Color(red: 0.61, green: 0.61, blue: 0.61).opacity(0.2), location: 0.78),
+                        Gradient.Stop(color: .white.opacity(0.4), location: 0.00),
+                        Gradient.Stop(color: Color(red: 0.61, green: 0.61, blue: 0.61).opacity(0.5), location: 0.78),
                     ],
                     center: UnitPoint(x: 0.18, y: 0.04)
                     
@@ -61,8 +61,9 @@ struct UploadImageSheetView: View {
                     }
                 }
             }
-          .frame(maxWidth: .infinity,maxHeight: .infinity)
-
+            .frame(maxWidth: .infinity,maxHeight: .infinity)
+ 
+         
     }
 }
 

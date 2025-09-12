@@ -1,17 +1,23 @@
+
 //
-//  BrushAreaView.swift
+//  BrushSystemComponents.swift
 //  CarQ
 //
-//  Created by Purvi Sancheti on 11/09/25.
+//  Created by Assistant on 12/09/25.
 //
 
 import SwiftUI
-// MARK: - Supporting Components for Brush System
 
-// Interactive view for brush/eraser
+// MARK: - Shared Drawing Tool Enum
+public enum DrawingTool {
+    case brush
+    case eraser
+}
+
+// MARK: - Reusable Brush Area View
 struct BrushAreaView: View {
     @Binding var brushedAreas: [CGRect]
-    @Binding var currentTool: MagicalModificationView.DrawingTool
+    @Binding var currentTool: DrawingTool
     @Binding var brushSize: CGFloat
     var containerSize: CGSize
     @Binding var imageFrame: CGRect
@@ -113,46 +119,3 @@ struct BrushAreaView: View {
     }
 }
 
-// MARK: - Cursor Indicator
-struct CursorIndicator: View {
-    let toolType: MagicalModificationView.DrawingTool
-    let brushSize: CGFloat
-    let position: CGPoint
-    
-    var body: some View {
-        ZStack {
-            // Size indicator circle
-            
-            Image(toolType == .brush ? .brushIcon2 : .eraserIcon2) // This will show the brush icon for both tools
-                .resizable()
-                .frame(width: ScaleUtility.scaledValue(brushSize), height: ScaleUtility.scaledValue(brushSize))
-         
-
-            //
-//            Circle()
-//                .stroke(toolType == .brush ? Color.white : Color.red, lineWidth: 2)
-//                .frame(width: brushSize, height: brushSize)
-//                .shadow(color: .black.opacity(0.3), radius: 2)
-//            
-//            // Center dot
-//            Circle()
-//                .fill(toolType == .brush ? Color.white : Color.red)
-//                .frame(width: 3, height: 3)
-//            
-//            // Tool icon above the circle
-//            VStack {
-//                Image(.brushIcon) // This will show the brush icon for both tools
-//                    .resizable()
-//                    .frame(width: 16, height: 16)
-//                    .foregroundColor(toolType == .brush ? .white : .red)
-//                    .padding(6)
-//                    .background(.ultraThinMaterial, in: RoundedRectangle(cornerRadius: 8))
-//                    .shadow(radius: 2)
-//                    .offset(y: -brushSize/2 - 18)
-//                
-//                Spacer()
-//            }
-        }
-        .position(position)
-    }
-}

@@ -3,8 +3,6 @@
 //  CarQ
 //
 
-
-
 import Foundation
 import SwiftUI
 import Kingfisher
@@ -16,6 +14,10 @@ struct HistoryView: View {
     @State private var recordToDelete: ImageRecord?
     @State private var showToast = false
     @State private var toastMessage = ""
+    
+    @State private var selectedRecord: ImageRecord?
+    @State private var showPreview = false
+    @State private var previewImageURL: URL?
     
     var body: some View {
         VStack(spacing: 0) {
@@ -30,28 +32,61 @@ struct HistoryView: View {
                 EmptyHistoryView()
             } else {
                 ScrollView {
-                    LazyVGrid(columns: [
-                        GridItem(.flexible(), spacing: ScaleUtility.scaledSpacing(15)),
-                        GridItem(.flexible(), spacing: ScaleUtility.scaledSpacing(15))
-                    ], spacing: ScaleUtility.scaledSpacing(20)) {
-                        ForEach(historyRecords, id: \.objectID) { record in
-                            HistoryCardView(
-                                record: record,
-                                onDelete: {
-                                    recordToDelete = record
-                                    showDeleteConfirmation = true
+                  
+                    Spacer()
+                        .frame(height: ScaleUtility.scaledValue(20))
+                    
+                    VStack(spacing: ScaleUtility.scaledSpacing(15)) {
+                        ForEach(0..<(historyRecords.count + 1) / 2, id: \.self) { rowIndex in
+                            HStack(spacing: ScaleUtility.scaledSpacing(15)) {
+                                let startIndex = rowIndex * 2
+                                let endIndex = min(startIndex + 2, historyRecords.count)
+                                
+                                ForEach(startIndex..<endIndex, id: \.self) { index in
+                                    let record = historyRecords[index]
+                                    
+                                    Button(action: {
+                                        selectedRecord = record
+                                        previewImageURL = computePreviewURL(for: record)
+                                        showPreview = true
+                                    }) {
+                                        HistoryCardView(
+                                            record: record,
+                                            onDelete: {
+                                                recordToDelete = record
+                                                showDeleteConfirmation = true
+                                            }
+                                        )
+                                    }
+                                    .buttonStyle(PlainButtonStyle())
+                                    .frame(maxWidth: .infinity)
                                 }
-                            )
+                                
+                                // Add spacer for odd number of items in last row
+                                if endIndex - startIndex == 1 {
+                                    Spacer()
+                                        .frame(maxWidth: .infinity)
+                                }
+                            }
                         }
                     }
                     .padding(.horizontal, ScaleUtility.scaledSpacing(15))
-                    .padding(.top, ScaleUtility.scaledSpacing(25))
+                    
+                    Spacer()
+                        .frame(height: ScaleUtility.scaledValue(150))
+              
                 }
             }
             
             Spacer()
         }
         .background(Color.secondaryApp.edgesIgnoringSafeArea(.all))
+        .onReceive(NotificationCenter.default.publisher(for: .NSManagedObjectContextObjectsDidChange)) { _ in
+            loadHistory()
+        }
+        .onReceive(NotificationCenter.default.publisher(for: .historyDidChange)) { _ in
+            loadHistory()
+        }
         .onAppear {
             loadHistory()
         }
@@ -84,6 +119,24 @@ struct HistoryView: View {
                 .offset(y: ScaleUtility.scaledSpacing(-100))
             }
         }
+        .navigationDestination(isPresented: $showPreview) {
+             if let rec = selectedRecord {
+                 ImagePreview(
+                     record: rec,
+                     imageURL: $previewImageURL,
+                     onDelete: {
+                         recordToDelete = rec
+                         showDeleteConfirmation = true
+                     },
+                     onBack: {
+                         showPreview = false
+                     }
+                 )
+                 .background(Color.secondaryApp.edgesIgnoringSafeArea(.all))
+             } else {
+                 EmptyView()
+             }
+         }
     }
     
     private func loadHistory() {
@@ -100,8 +153,11 @@ struct HistoryView: View {
     private func deleteRecord(_ record: ImageRecord) {
         do {
             try CoreDataManager.shared.deleteRecord(objectID: record.objectID)
-            loadHistory() // Refresh the list
-            
+
+            DispatchQueue.main.async {
+                loadHistory()
+            }
+
             toastMessage = "Image deleted successfully"
             showToast = true
             DispatchQueue.main.asyncAfter(deadline: .now() + 2) {
@@ -117,5 +173,18 @@ struct HistoryView: View {
         }
         recordToDelete = nil
     }
-}
 
+    private func computePreviewURL(for record: ImageRecord) -> URL? {
+        if let localPath = record.localPath {
+            let base = FileManager.default.urls(for: .applicationSupportDirectory, in: .userDomainMask).first!
+                .appendingPathComponent("CarQ", isDirectory: true)
+                .appendingPathComponent("Images", isDirectory: true)
+            let local = base.appendingPathComponent(localPath)
+            if FileManager.default.fileExists(atPath: local.path) {
+                return local
+            }
+        }
+        if let s = record.remoteURL, let u = URL(string: s) { return u }
+        return nil
+    }
+}

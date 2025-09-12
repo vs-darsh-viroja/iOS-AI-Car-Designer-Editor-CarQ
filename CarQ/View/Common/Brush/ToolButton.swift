@@ -29,7 +29,7 @@ struct ToolButton: View {
      
             }
             .padding(.vertical, ScaleUtility.scaledSpacing(10))
-            .padding(.horizontal, ScaleUtility.scaledSpacing(20))
+            .padding(.horizontal, ScaleUtility.scaledSpacing(15))
             .background {
                 Image(.selectionBg2)
                     .resizable()

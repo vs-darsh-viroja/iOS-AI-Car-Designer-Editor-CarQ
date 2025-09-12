@@ -22,6 +22,9 @@ enum AlertType: Identifiable {
     }
 }
 
+import Foundation
+import SwiftUI
+import PhotosUI
 
 struct MagicalModificationView: View {
     @State var selectedType: String = ""
@@ -42,64 +45,46 @@ struct MagicalModificationView: View {
     
     @State private var showToast = false
     @State private var toastMessage = ""
-    @State var selectedEraser: String = "Brush"
 
-    @State private var drawingCanvasView: DrawingCanvasView? = nil
-
-    
     @State private var resultImage: UIImage?
     
     @State private var isGenerated = false
     @State private var loadingPercentage = 0
     @State private var showPromptBox = false
    
-
-    // Brush states
+    // Brush states - using the shared enum now
     @State private var brushedAreas = [CGRect]()
-    @State private var currentTool: DrawingTool = .brush
+    @State private var currentTool: DrawingTool = .brush // Using shared enum
     @State private var brushSize: CGFloat = 20
     @State private var imageFrame: CGRect = .zero
-    @State private var imageSize: CGSize = .zero
     @State private var needsRedraw = false
     
     @State private var activeAlert: AlertType?
-    
     @State var isProcessing: Bool = false
-    
     @StateObject private var viewModel = GenerationViewModel()
-    
-    enum DrawingTool {
-        case brush
-        case eraser
-    }
-
     
     var body: some View {
         ZStack(alignment: .bottom) {
-            
             VStack(spacing: 0) {
-                
                 HeaderView(text: "Magical Modification", onBack: {
                     onBack()
-                })
+                },onClose: {
+                    
+                },isCross: false)
                 .padding(.top, ScaleUtility.scaledSpacing(15))
                 
                 ScrollViewReader { scrollView in
-                    
                     ScrollView {
-                        
                         Spacer()
-                            .frame(height: ScaleUtility.scaledValue(29))
+                            .frame(height: ScaleUtility.scaledValue(24))
                         
                         VStack(spacing: 0) {
                             mainBrushInterface()
                         }
                         
                         if keyboard.currentHeight > 0 {
-                            
                             Spacer()
                                 .frame(height: ScaleUtility.scaledValue(330))
-                            
                         }
                         else {
                             Spacer()
@@ -110,10 +95,8 @@ struct MagicalModificationView: View {
                             .frame(maxWidth: .infinity)
                             .frame(height: ScaleUtility.scaledValue(1))
                             .id("ScrollToBottom")
-                        
                     }
                     .onChange(of: keyboard.currentHeight) { height in
-                        // Scroll when keyboard appears/disappears
                         if height > 0 {
                             DispatchQueue.main.asyncAfter(deadline: .now() + 0.1) {
                                 withAnimation(.easeOut(duration: 0.25)) {
@@ -122,28 +105,21 @@ struct MagicalModificationView: View {
                             }
                         }
                     }
-                    
                 }
                 
                 Spacer()
-                
             }
             .frame(maxWidth: .infinity,maxHeight: .infinity)
             
-            
-            GenerateButtonView(isDisabled: false,  action: {
+            GenerateButtonView(isDisabled: false, action: {
                 if brushedAreas.isEmpty {
-                       activeAlert = .processingError(message: "Please brush areas you want to modify")
-                   } else if prompt.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty {
-                       activeAlert = .processingError(message: "Please enter a prompt to describe the desired changes")
-                   } else {
-//                       generateMagicBrush()
-                       isProcessing = true
-                   }
+                    activeAlert = .processingError(message: "Please brush areas you want to modify")
+                } else if prompt.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty {
+                    activeAlert = .processingError(message: "Please enter a prompt to describe the desired changes")
+                } else {
+                    isProcessing = true
+                }
             })
-            
-            
-            
         }
         .onChange(of: targetPhotoItem) { newItem in
             Task {
@@ -160,7 +136,22 @@ struct MagicalModificationView: View {
         .navigationDestination(isPresented: $isProcessing) {
                 ProcessingView(
                     viewModel: viewModel,
-                    onBack: { isProcessing = false },
+                    onBack: {
+                        if viewModel.shouldReturn {
+                            activeAlert = .processingError(message: viewModel.errorMessage ??  "Generation failed. Please try again.")
+    //                        showPopUp = false
+                            isProcessing = false
+                       
+                            withAnimation { showToast = true }
+                    
+                            viewModel.shouldReturn = false
+                        }
+                        else {
+    //                        showPopUp = false
+                            isProcessing = false
+
+                        }
+                    },
                     onAppear: {
                         Task {
                             guard let originalImage = selectedImage,
@@ -194,6 +185,8 @@ struct MagicalModificationView: View {
                                 viewModel.shouldReturn = true
                             }
                         }
+                    }, onClose: {
+                        onBack()
                     }
                 )
             }
@@ -260,13 +253,12 @@ struct MagicalModificationView: View {
         }
     }
     
-    
     private func mainBrushInterface() -> some View {
         VStack(spacing: 20) {
             // Image and Brush area
             if let selectedImage = selectedImage {
                 imageCanvasView(selectedImage: selectedImage)
-            }  else {
+            } else {
                 Button(action: {
                     showUploadSheet = true
                 }) {
@@ -274,12 +266,15 @@ struct MagicalModificationView: View {
                 }
             }
             
-            
             if let selectedImage = selectedImage {
-                brushControlsSection
+                // Use the reusable brush controls
+                BrushControlsView(
+                    currentTool: $currentTool,
+                    brushSize: $brushSize,
+                    onReset: { resetDrawing() }
+                )
             }
          
-            
             VStack(spacing: ScaleUtility.scaledSpacing(13)) {
                 Text("Change Type")
                     .font(FontManager.ChakraPetchSemiBoldFont(size: .scaledFontSize(18)))
@@ -288,7 +283,6 @@ struct MagicalModificationView: View {
                     .frame(maxWidth: .infinity,alignment: .leading)
                 
                 HStack(spacing: isIPad ? ScaleUtility.scaledSpacing(16) : ScaleUtility.scaledSpacing(6)) {
-                    
                     Button {
                         selectedType = "Resize"
                     } label: {
@@ -322,7 +316,6 @@ struct MagicalModificationView: View {
                                 Text("Reshape")
                                     .font(FontManager.ChakraPetchRegularFont(size: .scaledFontSize(16)))
                                     .foregroundColor(Color.primaryApp.opacity(0.4))
-                                
                             }
                             .overlay {
                                 if selectedType == "Reshape" {
@@ -355,21 +348,17 @@ struct MagicalModificationView: View {
                                 }
                             }
                     }
-                    
-                    
                 }
             }
             
             PromptView(prompt: $prompt, isInputFocused: $searchFocused)
-            
-            
-            
         }
     }
     
     private func imageCanvasView(selectedImage: UIImage) -> some View {
         GeometryReader { geometry in
             ZStack(alignment: .center) {
+    
                 Image(uiImage: selectedImage)
                     .resizable()
                     .scaledToFit()
@@ -378,27 +367,15 @@ struct MagicalModificationView: View {
                             let frame = imageGeometry.frame(in: .local)
                             DispatchQueue.main.async {
                                 self.imageFrame = frame
-                                self.imageSize = selectedImage.size
                             }
                             return Color.clear
                         }
                     )
                     .overlay {
-                           // Background overlay
-                           Image(.imageBg)
-                               .resizable()
-                               .scaledToFit()
-                               .background(
-                                   GeometryReader { imageGeometry -> Color in
-                                       let frame = imageGeometry.frame(in: .local)
-                                       DispatchQueue.main.async {
-                                           self.imageFrame = frame
-                                           self.imageSize = selectedImage.size
-                                       }
-                                       return Color.clear
-                                   }
-                               )
-                       }
+                        Image(.imageBg)
+                            .resizable()
+                            .scaledToFit()
+                    }
                     .overlay(
                         ZStack {
                             // Red overlay for brushed areas
@@ -411,7 +388,7 @@ struct MagicalModificationView: View {
                                 .allowsHitTesting(false)
                             }
                             
-                            // Interactive brush area
+                            // Interactive brush area using reusable component
                             BrushAreaView(
                                 brushedAreas: $brushedAreas,
                                 currentTool: $currentTool,
@@ -424,11 +401,9 @@ struct MagicalModificationView: View {
                     )
                     .cornerRadius(15)
                     .overlay(
-                        //Remove Image
                         Button{
                             clearSelectedImage()
-
-                        }label: {
+                        } label: {
                             Image(.crossIcon2)
                                 .resizable()
                                 .frame(width: ScaleUtility.scaledValue(18), height: ScaleUtility.scaledValue(18))
@@ -439,7 +414,8 @@ struct MagicalModificationView: View {
                                     RoundedRectangle(cornerRadius: 30)
                                         .stroke(Color.primaryApp.opacity(0.2), lineWidth: 1)
                                 )
-                        }.offset(x: ScaleUtility.scaledSpacing(-15), y: ScaleUtility.scaledSpacing(15)),alignment:.topTrailing
+                        }.offset(x: ScaleUtility.scaledSpacing(-15), y: ScaleUtility.scaledSpacing(15)),
+                        alignment: .topTrailing
                     )
             }
             .frame(width: geometry.size.width, height: min(geometry.size.height, ScaleUtility.scaledValue(345)))
@@ -448,135 +424,62 @@ struct MagicalModificationView: View {
         .frame(height: ScaleUtility.scaledValue(345))
     }
     
-    private var brushControlsSection: some View {
-        VStack(spacing: 25) {
-           
-            // Tool buttons
-            HStack(spacing: 10) {
-                ToolButton(
-                    title: "Bursh",
-                    isSelected: currentTool == .brush,
-                    action: { currentTool = .brush }
-                )
-                
-                ToolButton(
-                    title: "Eraser",
-                    isSelected: currentTool == .eraser,
-                    action: { currentTool = .eraser }
-                )
-                Spacer()
-                ToolButton(
-                    title: "Reset",
-                    isSelected: false,
-                    action: { resetDrawing() }
-                )
-            }
-            
-            // Brush size slider
-            CustomSlider(value: $brushSize, actionType: $currentTool, range: 5...50)
-            
-        }.padding(.horizontal)
-    }
- 
-    // MARK: - Binary (B/W) grayscale mask builder
     private func createMaskImage() -> UIImage? {
-        guard let baseImage = selectedImage else { return nil }
-        guard imageFrame.width > 0, imageFrame.height > 0 else { return nil }
-        
-        let originalSize = baseImage.size
-        let scaleFactor = baseImage.scale
-        
-        let format = UIGraphicsImageRendererFormat()
-        format.scale = 1.0
-        let renderer = UIGraphicsImageRenderer(size: originalSize, format: format)
-        
-        let brushedImage = renderer.image { ctx in
-            // Draw the original image first
-            baseImage.draw(in: CGRect(origin: .zero, size: originalSize))
+            guard let baseImage = selectedImage else { return nil }
+            guard imageFrame.width > 0, imageFrame.height > 0 else { return nil }
             
-            // Draw brush marks on top
-            let sx = originalSize.width / imageFrame.width
-            let sy = originalSize.height / imageFrame.height
+            let originalSize = baseImage.size
+            let scaleFactor = baseImage.scale
             
-            for rect in brushedAreas {
-                let scaledRect = CGRect(
-                    x: rect.origin.x * sx,
-                    y: rect.origin.y * sy,
-                    width: rect.size.width * sx,
-                    height: rect.size.height * sy
-                )
+            let format = UIGraphicsImageRendererFormat()
+            format.scale = 1.0
+            let renderer = UIGraphicsImageRenderer(size: originalSize, format: format)
+            
+            let brushedImage = renderer.image { ctx in
+                // Draw the original image first
+                baseImage.draw(in: CGRect(origin: .zero, size: originalSize))
                 
-                // Draw semi-transparent red circle to mark brushed areas
-                UIColor.red.withAlphaComponent(0.5).setFill()
-                let circlePath = UIBezierPath(ovalIn: scaledRect)
-                circlePath.fill()
+                // Draw brush marks on top
+                let sx = originalSize.width / imageFrame.width
+                let sy = originalSize.height / imageFrame.height
+                
+                for rect in brushedAreas {
+                    let scaledRect = CGRect(
+                        x: rect.origin.x * sx,
+                        y: rect.origin.y * sy,
+                        width: rect.size.width * sx,
+                        height: rect.size.height * sy
+                    )
+                    
+                    // Draw semi-transparent red circle to mark brushed areas
+                    UIColor.red.withAlphaComponent(0.5).setFill()
+                    let circlePath = UIBezierPath(ovalIn: scaledRect)
+                    circlePath.fill()
+                }
             }
+            
+            return UIImage(cgImage: brushedImage.cgImage!, scale: scaleFactor, orientation: baseImage.imageOrientation)
         }
         
-        return UIImage(cgImage: brushedImage.cgImage!, scale: scaleFactor, orientation: baseImage.imageOrientation)
-    }
-
-    
-//    private func createBinaryMaskImage() -> UIImage? {
-//        guard let baseImage = selectedImage else { return nil }
-//        guard imageFrame.width > 0, imageFrame.height > 0 else { return nil }
-//
-//        let originalSize = baseImage.size
-//
-//        // Offscreen renderer at the original image size; opaque to produce clean B/W mask
-//        let format = UIGraphicsImageRendererFormat()
-//        format.scale = 1.0
-//        format.opaque = true
-//
-//        let renderer = UIGraphicsImageRenderer(size: originalSize, format: format)
-//
-//        let maskImage = renderer.image { ctx in
-//            // Start fully black (protect all pixels by default)
-//            UIColor.black.setFill()
-//            ctx.fill(CGRect(origin: .zero, size: originalSize))
-//
-//            // Scale brushed rects from view space -> image pixel space
-//            let sx = originalSize.width / imageFrame.width
-//            let sy = originalSize.height / imageFrame.height
-//
-//            // Paint the selected regions in pure white
-//            UIColor.white.setFill()
-//            for rect in brushedAreas {
-//                let scaledRect = CGRect(
-//                    x: rect.origin.x * sx,
-//                    y: rect.origin.y * sy,
-//                    width: rect.size.width * sx,
-//                    height: rect.size.height * sy
-//                )
-//                UIBezierPath(ovalIn: scaledRect).fill()
-//            }
-//        }
-//
-//        // Prefer PNG (lossless) for binary masks
-//        return maskImage
-//    }
-
-    
-    private func resetDrawing() {
-        brushedAreas = []
-        needsRedraw.toggle()
-    }
-    private func clearSelectedImage() {
-        selectedImage = nil
-        resetDrawing()
-        resultImage = nil
-        isGenerated = false
-        prompt = ""
-        
-    }
-    private func resetAndTryAgain() {
-        isGenerated = false
-        resultImage = nil
-        loadingPercentage = 0
-        showPromptBox = false
-        prompt = ""
-        resetDrawing()
-    }
-    
-    
+        private func resetDrawing() {
+            brushedAreas = []
+            needsRedraw.toggle()
+        }
+        private func clearSelectedImage() {
+            selectedImage = nil
+            resetDrawing()
+            resultImage = nil
+            isGenerated = false
+            prompt = ""
+            
+        }
+        private func resetAndTryAgain() {
+            isGenerated = false
+            resultImage = nil
+            loadingPercentage = 0
+            showPromptBox = false
+            prompt = ""
+            resetDrawing()
+        }
 }
+

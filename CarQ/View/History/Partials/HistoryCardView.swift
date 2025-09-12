@@ -12,14 +12,12 @@ import Kingfisher
 struct HistoryCardView: View {
     let record: ImageRecord
     let onDelete: () -> Void
+    @State var showPreview: Bool = false
     
-    @State private var imageURL: URL?
+    @State  var imageURL: URL?
     
     var body: some View {
         ZStack {
-            // Image content
-         
-            
             Group {
                 if let imageURL = imageURL {
                     KFImage(imageURL)
@@ -39,9 +37,9 @@ struct HistoryCardView: View {
                             Image(.cardBg)
                                 .resizable()
                                 .frame(width: ScaleUtility.scaledValue(166.00098), height: ScaleUtility.scaledValue(172.00098))
-                               
+                            
                         }
-                        
+                    
                     
                 } else {
                     // Fallback when no image URL is available
@@ -61,8 +59,6 @@ struct HistoryCardView: View {
                 }
             }
             
-       
-            
             // Delete button
             VStack {
                 HStack {
@@ -74,12 +70,13 @@ struct HistoryCardView: View {
                             .padding(.all, ScaleUtility.scaledSpacing(6))
                             .background {
                                 Circle()
-                                    .fill(Color.secondaryApp.opacity(0.1))
+                                    .fill(Color.secondaryApp.opacity(0.56))
                             }
                             .cornerRadius(30)
                             .overlay {
                                 RoundedRectangle(cornerRadius: 30)
-                                    .stroke(Color.primaryApp.opacity(0.2), lineWidth: 1)
+                                    .inset(by: -0.5)
+                                    .stroke(Color.primaryApp.opacity(0.1), lineWidth: 1)
                             }
                     }
                     .offset(x: -10, y: 10)
@@ -87,47 +84,29 @@ struct HistoryCardView: View {
                 Spacer()
             }
             
-//            // Optional: Show prompt/source info at bottom
-//            if let prompt = record.prompt, !prompt.isEmpty {
-//                VStack {
-//                    Spacer()
-//                    HStack {
-//                        Text(prompt)
-//                            .font(FontManager.ChakraPetchRegularFont(size: .scaledFontSize(10)))
-//                            .foregroundColor(Color.secondaryApp)
-//                            .lineLimit(2)
-//                            .padding(.horizontal, 8)
-//                            .padding(.vertical, 4)
-//                            .background {
-//                                Color.primaryApp.opacity(0.8)
-//                                    .cornerRadius(6)
-//                            }
-//                        Spacer()
-//                    }
-//                    .padding(.bottom, 8)
-//                    .padding(.leading, 8)
-//                }
-//            }
         }
-    
         .onAppear {
             setupImageURL()
         }
+
     }
     
+    // HistoryCardView.swift
     private func setupImageURL() {
-        // Priority: Try remote URL first, then local file
-        if let remoteURLString = record.remoteURL,
-           let remoteURL = URL(string: remoteURLString) {
-            imageURL = remoteURL
-        } else if let localPath = record.localPath {
-            let baseFolder = getImagesDirectory()
-            let localURL = baseFolder.appendingPathComponent(localPath)
-            if FileManager.default.fileExists(atPath: localURL.path) {
-                imageURL = localURL
+        if let localPath = record.localPath {
+            let base = getImagesDirectory()
+            let local = base.appendingPathComponent(localPath)
+            if FileManager.default.fileExists(atPath: local.path) {
+                imageURL = local
+                return
             }
         }
+        if let remoteURLString = record.remoteURL,
+           let remote = URL(string: remoteURLString) {
+            imageURL = remote
+        }
     }
+
     
     private func getImagesDirectory() -> URL {
         let appSupport = FileManager.default.urls(for: .applicationSupportDirectory, in: .userDomainMask).first!

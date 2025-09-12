@@ -20,13 +20,20 @@ struct CreateView: View {
     @State var selectedAccessory: String = ""
     @State var isProcessing: Bool = false
     
+    @State private var showToast = false
+    @State private var toastMessage = ""
+    @State private var activeAlert: AlertType?
+    
+    
     var body: some View {
         ZStack(alignment: .bottom) {
             VStack(spacing: 0) {
                 
                 HeaderView(text: "Create", onBack: {
                     onBack()
-                })
+                },onClose: {
+                    
+                },isCross: false)
                 .padding(.top, ScaleUtility.scaledSpacing(15))
                 
                 ScrollView {
@@ -71,7 +78,23 @@ struct CreateView: View {
         .navigationDestination(isPresented: $isProcessing) {
             ProcessingView(
                 viewModel: viewModel,
-                onBack: { isProcessing = false },
+                onBack: {
+                    if viewModel.shouldReturn {
+                        activeAlert = .processingError(message: viewModel.errorMessage ??  "Generation failed. Please try again.")
+//                        showPopUp = false
+                        isProcessing = false
+                   
+                        withAnimation { showToast = true }
+                
+                        viewModel.shouldReturn = false
+                    }
+                    else {
+//                        showPopUp = false
+                        isProcessing = false
+
+                    }
+                   
+                },
                 onAppear: {
                     Task {
                         let finalPrompt = PromptBuilder.buildTextPrompt(
@@ -95,6 +118,35 @@ struct CreateView: View {
                             viewModel.shouldReturn = true
                         }
                     }
+                }, onClose: {
+                    onBack()
+                }
+            )
+        }
+        .alert(item: $activeAlert) { alertType in
+            switch alertType {
+            case .saveResult(let message):
+                return Alert(
+                    title: Text("Save Result"),
+                    message: Text(message),
+                    dismissButton: .default(Text("OK"))
+                )
+            case .processingError(let message):
+                return Alert(
+                    title: Text("Error"),
+                    message: Text("Unable to Process Prompt."),
+                    dismissButton: .default(Text("OK"))
+                )
+            }
+        }
+        .alert(isPresented: $showToast) {
+            Alert(
+                title: Text("Error"),
+                message: Text("Unable to Process Prompt.")
+                    .foregroundColor(Color.red)
+                ,
+                dismissButton: .default(Text("OK")) {
+                    showToast = false
                 }
             )
         }

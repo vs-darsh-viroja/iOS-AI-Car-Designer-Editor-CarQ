@@ -27,6 +27,7 @@ struct ProcessingView: View {
     @ObservedObject var viewModel: GenerationViewModel
     var onBack: () -> Void
     var onAppear:() -> Void
+    var onClose: () -> Void
     
     var body: some View {
         ZStack {
@@ -83,7 +84,9 @@ struct ProcessingView: View {
                 steeringAngle = 0  // optional reset
             }
         .navigationDestination(isPresented: $viewModel.shouldNavigateToResult) {
-            ResultView(viewModel: viewModel) { onBack() }
+            ResultView(viewModel: viewModel) { onBack() } onClose: {
+                onClose()
+            }
         }
         .onChange(of: viewModel.shouldReturn) { goBack in
             if goBack { onBack() }

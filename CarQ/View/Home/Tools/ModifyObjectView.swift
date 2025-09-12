@@ -19,7 +19,9 @@ struct ModifyObjectView: View {
             VStack(spacing: 0) {
                 HeaderView(text: "Modify Object", onBack: {
                     onBack()
-                })
+                },onClose: {
+                    
+                },isCross: false)
                 .padding(.top, ScaleUtility.scaledSpacing(15))
                 
                 ScrollViewReader { scrollView in
