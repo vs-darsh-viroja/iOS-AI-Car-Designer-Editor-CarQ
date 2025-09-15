@@ -26,17 +26,19 @@ struct HistoryFilterView: View {
                     Text("Generated")
                         .font(FontManager.ChakraPetchRegularFont(size: .scaledFontSize(14)))
                         .foregroundColor(selectedFilter == "Generated" ? Color.primaryApp : Color.primaryApp.opacity(0.6))
-                        .frame(width: ScaleUtility.scaledValue(165), height: ScaleUtility.scaledValue(42))
+                        .frame(width: isIPad ? ScaleUtility.scaledValue(345) : ScaleUtility.scaledValue(165), height: ScaleUtility.scaledValue(42))
                         .background {
                             if selectedFilter == "Generated" {
                                 Image(.toggleBg2)
                                     .resizable()
-                                    .frame(width: ScaleUtility.scaledValue(165), height: ScaleUtility.scaledValue(42))
+                                    .frame(width: isIPad ? ScaleUtility.scaledValue(345) : ScaleUtility.scaledValue(165),
+                                           height: ScaleUtility.scaledValue(42))
                             }
                             else {
                                 Image(.toggleBg3)
                                     .resizable()
-                                    .frame(width: ScaleUtility.scaledValue(165), height: ScaleUtility.scaledValue(42))
+                                    .frame(width: isIPad ? ScaleUtility.scaledValue(345) : ScaleUtility.scaledValue(165),
+                                           height: ScaleUtility.scaledValue(42))
                                 
                             }
                             
@@ -45,7 +47,8 @@ struct HistoryFilterView: View {
                             if selectedFilter == "Generated" {
                                 Image(.toggleOverlay)
                                     .resizable()
-                                    .frame(width: ScaleUtility.scaledValue(165), height: ScaleUtility.scaledValue(42))
+                                    .frame(width: isIPad ? ScaleUtility.scaledValue(345) : ScaleUtility.scaledValue(165),
+                                           height: ScaleUtility.scaledValue(42))
                             }
                         }
                 }
@@ -59,24 +62,24 @@ struct HistoryFilterView: View {
                     Text("Edited")
                         .font(FontManager.ChakraPetchRegularFont(size: .scaledFontSize(14)))
                         .foregroundColor(selectedFilter == "Edited" ? Color.primaryApp : Color.primaryApp.opacity(0.6))
-                        .frame(width: ScaleUtility.scaledValue(165), height: ScaleUtility.scaledValue(42))
+                        .frame(width: isIPad ? ScaleUtility.scaledValue(345) : ScaleUtility.scaledValue(165), height: ScaleUtility.scaledValue(42))
                         .background {
                             if selectedFilter == "Edited" {
                                 Image(.toggleBg2)
                                     .resizable()
-                                    .frame(width: ScaleUtility.scaledValue(165), height: ScaleUtility.scaledValue(42))
+                                    .frame(width: isIPad ? ScaleUtility.scaledValue(345) : ScaleUtility.scaledValue(165), height: ScaleUtility.scaledValue(42))
                             }
                             else {
                                 Image(.toggleBg3)
                                     .resizable()
-                                    .frame(width: ScaleUtility.scaledValue(165), height: ScaleUtility.scaledValue(42))
+                                    .frame(width: isIPad ? ScaleUtility.scaledValue(345) : ScaleUtility.scaledValue(165), height: ScaleUtility.scaledValue(42))
                             }
                         }
                         .overlay {
                             if selectedFilter == "Edited" {
                                 Image(.toggleOverlay)
                                     .resizable()
-                                    .frame(width: ScaleUtility.scaledValue(165), height: ScaleUtility.scaledValue(42))
+                                    .frame(width: isIPad ? ScaleUtility.scaledValue(345) : ScaleUtility.scaledValue(165), height: ScaleUtility.scaledValue(42))
                             }
                         }
                 }

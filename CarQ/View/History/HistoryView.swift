@@ -141,8 +141,9 @@ struct HistoryView: View {
     
     private func loadHistory() {
         do {
-            let kind: HistoryKind? = selectedFilter == "Generated" ? .generated :
-                                    selectedFilter == "Edited" ? .edited : nil
+            let kind: HistoryKind? = {
+                 selectedFilter == "Generated" ? .generated :
+                selectedFilter == "Edited" ? .edited : nil }()
             historyRecords = try CoreDataManager.shared.fetchHistory(kind: kind, newestFirst: true)
         } catch {
             print("Failed to load history: \(error)")

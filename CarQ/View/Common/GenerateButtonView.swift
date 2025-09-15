@@ -16,10 +16,12 @@ struct GenerateButtonView: View {
     var body: some View {
         ZStack {
             Image(.bgBlur)
+                .resizable()
                 .frame(maxWidth: .infinity)
-                .frame(height: ScaleUtility.scaledValue(117))
+                .frame(height: isIPad ? ScaleUtility.scaledValue(157) : ScaleUtility.scaledValue(117))
                 .allowsHitTesting(true)
                 .ignoresSafeArea(.all)
+            
             
             
             Button {

@@ -33,10 +33,23 @@ struct DrawingCanvasView: View {
                         }
                     )
                     .overlay {
-                        // Background overlay
-                        Image(.imageBg)
-                            .resizable()
-                            .scaledToFit()
+                        
+                        if isIPad {
+                            
+                            Image(.imageBg)
+                                .resizable()
+                                .frame(width: ScaleUtility.scaledValue(647.01) ,
+                                       height: ScaleUtility.scaledValue(346.99463))
+                               
+                            
+                        }
+                        else {
+                            
+                            Image(.imageBg)
+                                .resizable()
+                                .scaledToFit()
+                       
+                        }
                     }
                     .overlay(
                         ZStack {

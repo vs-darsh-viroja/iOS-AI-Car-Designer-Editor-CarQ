@@ -36,7 +36,7 @@ struct HomeView: View {
             ToolsView()
             
             Spacer()
-                .frame(height: ScaleUtility.scaledValue(150))
+                .frame(height: isIPad ? ScaleUtility.scaledValue(200) : ScaleUtility.scaledValue(150))
             
         }
         .background(Color.secondaryApp.edgesIgnoringSafeArea(.all))

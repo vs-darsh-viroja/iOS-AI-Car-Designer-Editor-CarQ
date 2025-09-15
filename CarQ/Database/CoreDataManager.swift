@@ -51,7 +51,7 @@ final class CoreDataManager {
 
     
     func fetchHistory(kind: HistoryKind?, newestFirst: Bool) throws -> [ImageRecord] {
-        let req = NSFetchRequest<NSManagedObject>(entityName: "ImageRecord")
+        let req = NSFetchRequest<ImageRecord>(entityName: "ImageRecord")  // ✅ Correct type
         var preds: [NSPredicate] = []
 
         if let kind {
@@ -66,9 +66,8 @@ final class CoreDataManager {
             req.predicate = NSCompoundPredicate(andPredicateWithSubpredicates: preds)
         }
         req.sortDescriptors = [NSSortDescriptor(key: "createdAt", ascending: !newestFirst)]
-        return try (ctx.fetch(req) as? [ImageRecord]) ?? []
+        return try ctx.fetch(req)  // ✅ No casting needed
     }
-    
     // NEW: Delete a specific record by its ObjectID
     func deleteRecord(objectID: NSManagedObjectID) throws {
         let beforeCount = try fetchHistory(kind: nil, newestFirst: true).count

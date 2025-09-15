@@ -8,13 +8,26 @@
 import Foundation
 import SwiftUI
 import Kingfisher
-
 struct HistoryCardView: View {
     let record: ImageRecord
     let onDelete: () -> Void
     @State var showPreview: Bool = false
     
-    @State  var imageURL: URL?
+    // Remove @State since this should be computed
+    private var imageURL: URL? {
+        if let localPath = record.localPath {
+            let base = getImagesDirectory()
+            let local = base.appendingPathComponent(localPath)
+            if FileManager.default.fileExists(atPath: local.path) {
+                return local
+            }
+        }
+        if let remoteURLString = record.remoteURL,
+           let remote = URL(string: remoteURLString) {
+            return remote
+        }
+        return nil
+    }
     
     var body: some View {
         ZStack {
@@ -37,10 +50,7 @@ struct HistoryCardView: View {
                             Image(.cardBg)
                                 .resizable()
                                 .frame(width: ScaleUtility.scaledValue(166.00098), height: ScaleUtility.scaledValue(172.00098))
-                            
                         }
-                    
-                    
                 } else {
                     // Fallback when no image URL is available
                     Rectangle()
@@ -59,7 +69,7 @@ struct HistoryCardView: View {
                 }
             }
             
-            // Delete button
+            // Delete button (same as before)
             VStack {
                 HStack {
                     Spacer()
@@ -79,34 +89,13 @@ struct HistoryCardView: View {
                                     .stroke(Color.primaryApp.opacity(0.1), lineWidth: 1)
                             }
                     }
-                    .offset(x: -10, y: 10)
+                    .offset(x: ScaleUtility.scaledSpacing(-10), y: ScaleUtility.scaledSpacing(10))
                 }
                 Spacer()
             }
-            
         }
-        .onAppear {
-            setupImageURL()
-        }
-
+        // Remove onAppear since imageURL is now computed
     }
-    
-    // HistoryCardView.swift
-    private func setupImageURL() {
-        if let localPath = record.localPath {
-            let base = getImagesDirectory()
-            let local = base.appendingPathComponent(localPath)
-            if FileManager.default.fileExists(atPath: local.path) {
-                imageURL = local
-                return
-            }
-        }
-        if let remoteURLString = record.remoteURL,
-           let remote = URL(string: remoteURLString) {
-            imageURL = remote
-        }
-    }
-
     
     private func getImagesDirectory() -> URL {
         let appSupport = FileManager.default.urls(for: .applicationSupportDirectory, in: .userDomainMask).first!

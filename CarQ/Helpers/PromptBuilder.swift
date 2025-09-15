@@ -159,6 +159,7 @@ public enum PromptBuilder {
     }
 
     // MARK: - Backward-compatible overload (the one you were actually using)
+    
     public static func buildTextPrompt(
         description: String,
         color: String?,
@@ -175,8 +176,9 @@ public enum PromptBuilder {
             accessory: accessory
         )
     }
+    
+    //MARK: - Magical Modification
 
-    // MARK: - NEW: Magical Modification Prompt Builder
     public static func buildMagicalModificationPrompt(
         userPrompt: String,
         changeType: String
@@ -203,7 +205,8 @@ public enum PromptBuilder {
         return parts.joined(separator: " ")
     }
     
-    /// NEW: Change Color prompt (image → image)
+    //MARK: - Change Color
+    
      public static func buildChangeColorPrompt(
          colorKey: String?,          // e.g. "blackIColor" or "custom"
          customColorHex: String?,    // if colorKey == "custom"
@@ -239,6 +242,9 @@ public enum PromptBuilder {
          return parts.joined(separator: " ")
      }
     
+    //MARK: - Remove Object
+    
+    
     public static func buildRemoveObjectPrompt(objectHints: [String]? = nil) -> String {
         var parts: [String] = []
         if let hints = objectHints, !hints.isEmpty {
@@ -252,4 +258,93 @@ public enum PromptBuilder {
         parts.append("High-quality, artifact-free result with seamless blending.")
         return parts.joined(separator: " ")
     }
+    
+    //MARK: - Modify Object
+    
+    public static func buildModifyObjectPrompt(
+        userPrompt: String,
+        hasReference: Bool
+    ) -> String {
+        var parts: [String] = []
+
+        // 1. User’s request (always required)
+        let trimmed = userPrompt.trimmingCharacters(in: .whitespacesAndNewlines)
+        if !trimmed.isEmpty {
+            parts.append("Modify the highlighted areas: \(trimmed)")
+        }
+
+        // 2. Reference image hint
+        if hasReference {
+            parts.append("Use the provided reference image to guide the modification style or details.")
+        }
+
+        // 3. Guardrails
+        parts.append("Apply changes only to the highlighted/masked regions.")
+        parts.append("Maintain correct car proportions, perspective, and realism.")
+        parts.append("Blend seamlessly with the existing vehicle design.")
+        parts.append("High quality professional automotive result. No distortions, no artifacts.")
+
+        return parts.joined(separator: " ")
+    }
+
+    //MARK: - Add Object
+    
+    public static func buildAddObjectPrompt(
+        userPrompt: String,
+        hasReference: Bool
+    ) -> String {
+        var parts: [String] = []
+
+        // 1. User’s request
+        let trimmed = userPrompt.trimmingCharacters(in: .whitespacesAndNewlines)
+        if !trimmed.isEmpty {
+            parts.append("Add new object(s) in the highlighted areas: \(trimmed)")
+        }
+
+        // 2. Reference image hint
+        if hasReference {
+            parts.append("Use the provided reference image to guide the appearance, style, or details of the new object.")
+        }
+
+        // 3. Guardrails
+        parts.append("Apply additions only to the highlighted/masked regions.")
+        parts.append("Maintain correct car proportions, perspective, and realism.")
+        parts.append("Blend seamlessly with the existing vehicle design and environment.")
+        parts.append("High quality professional automotive result. No distortions, no artifacts.")
+
+        return parts.joined(separator: " ")
+    }
+    
+    
+    //MARK: - Replace Object
+    
+    public static func buildReplaceObjectPrompt(
+        userPrompt: String,
+        hasReference: Bool
+    ) -> String {
+        var parts: [String] = []
+
+        // 1. User’s request
+        let trimmed = userPrompt.trimmingCharacters(in: .whitespacesAndNewlines)
+        if !trimmed.isEmpty {
+            parts.append("Replace the highlighted object(s) with: \(trimmed)")
+        }
+
+        // 2. Reference image hint
+        if hasReference {
+            parts.append("Use the provided reference image to guide the replacement style, details, or appearance.")
+        }
+
+        // 3. Guardrails
+        parts.append("Apply changes only to the highlighted/masked regions.")
+        parts.append("Remove the original object completely and insert the new one naturally.")
+        parts.append("Maintain correct car proportions, perspective, and realism.")
+        parts.append("Blend seamlessly with the surrounding vehicle design and environment.")
+        parts.append("High quality professional automotive result. No distortions, no artifacts.")
+
+        return parts.joined(separator: " ")
+    }
+
+
+    
 }

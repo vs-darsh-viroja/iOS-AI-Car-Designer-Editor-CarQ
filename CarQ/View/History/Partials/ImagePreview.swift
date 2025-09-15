@@ -66,9 +66,22 @@ struct ImagePreview: View {
                             .padding(.horizontal, ScaleUtility.scaledSpacing(15))
                             .frame(minHeight: isIPad ? ScaleUtility.scaledValue(645) : ScaleUtility.scaledValue(345))
                             .overlay {
-                                Image(.imageBg)
-                                    .resizable()
-                                    .scaledToFit()
+                                
+                                if isIPad {
+                                    
+                                    Image(.imageBg)
+                                        .resizable()
+                                        .frame(width: ScaleUtility.scaledValue(647.01) ,
+                                               height: ScaleUtility.scaledValue(346.99463))
+                        
+                                }
+                                else {
+                                    
+                                    Image(.imageBg)
+                                        .resizable()
+                                        .scaledToFit()
+                             
+                                }
                             }
                     }
                     

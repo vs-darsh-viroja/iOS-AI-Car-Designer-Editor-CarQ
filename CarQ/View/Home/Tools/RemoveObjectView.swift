@@ -193,7 +193,7 @@ struct RemoveObjectView: View {
     }
     
     private func mainBrushInterface() -> some View {
-        VStack(spacing: 20) {
+        VStack(spacing: ScaleUtility.scaledSpacing(20)) {
             // Image and Brush area
             if let selectedImage = selectedImage {
                 imageCanvasView(selectedImage: selectedImage)
@@ -219,66 +219,83 @@ struct RemoveObjectView: View {
     
     private func imageCanvasView(selectedImage: UIImage) -> some View {
         GeometryReader { geometry in
-            ZStack(alignment: .center) {
+            ZStack(alignment: .topTrailing) {
     
-                Image(uiImage: selectedImage)
-                    .resizable()
-                    .scaledToFit()
-                    .background(
-                        GeometryReader { imageGeometry -> Color in
-                            let frame = imageGeometry.frame(in: .local)
-                            DispatchQueue.main.async {
-                                self.imageFrame = frame
+                ZStack(alignment: .center) {
+                    Image(uiImage: selectedImage)
+                        .resizable()
+                        .scaledToFit()
+                        .background(
+                            GeometryReader { imageGeometry -> Color in
+                                let frame = imageGeometry.frame(in: .local)
+                                DispatchQueue.main.async {
+                                    self.imageFrame = frame
+                                }
+                                return Color.clear
                             }
-                            return Color.clear
-                        }
-                    )
-                    .overlay {
+                        )
+                        .overlay(
+                            ZStack {
+                                // Red overlay for brushed areas
+                                if !brushedAreas.isEmpty || needsRedraw {
+                                    RedOverlayView(
+                                        rects: $brushedAreas,
+                                        imageSize: imageFrame.size,
+                                        brushSize: brushSize
+                                    )
+                                    .allowsHitTesting(false)
+                                }
+                                
+                                // Interactive brush area using reusable component
+                                BrushAreaView(
+                                    brushedAreas: $brushedAreas,
+                                    currentTool: $currentTool,
+                                    brushSize: $brushSize,
+                                    containerSize: imageFrame.size,
+                                    imageFrame: $imageFrame
+                                )
+                            }
+                                .clipped()
+                        )
+                        .cornerRadius(15)
+                       
+                    
+                    
+                    if isIPad {
+                        
+                        Image(.imageBg)
+                            .resizable()
+                            .frame(width: ScaleUtility.scaledValue(647.01) ,
+                                   height: ScaleUtility.scaledValue(346.99463))
+                            .allowsHitTesting(false)
+                        
+                    }
+                    else {
+                        
                         Image(.imageBg)
                             .resizable()
                             .scaledToFit()
+                            .allowsHitTesting(false)
                     }
-                    .overlay(
-                        ZStack {
-                            // Red overlay for brushed areas
-                            if !brushedAreas.isEmpty || needsRedraw {
-                                RedOverlayView(
-                                    rects: $brushedAreas,
-                                    imageSize: imageFrame.size,
-                                    brushSize: brushSize
-                                )
-                                .allowsHitTesting(false)
-                            }
-                            
-                            // Interactive brush area using reusable component
-                            BrushAreaView(
-                                brushedAreas: $brushedAreas,
-                                currentTool: $currentTool,
-                                brushSize: $brushSize,
-                                containerSize: imageFrame.size,
-                                imageFrame: $imageFrame
-                            )
-                        }
-                        .clipped()
-                    )
-                    .cornerRadius(15)
-                    .overlay(
-                        Button{
-                            clearSelectedImage()
-                        } label: {
-                            Image(.crossIcon2)
-                                .resizable()
-                                .frame(width: ScaleUtility.scaledValue(18), height: ScaleUtility.scaledValue(18))
-                                .padding(.all, ScaleUtility.scaledSpacing(5))
-                                .background(Color.primaryApp.opacity(0.1))
-                                .cornerRadius(30)
-                                .overlay(
-                                    RoundedRectangle(cornerRadius: 30)
-                                        .stroke(Color.primaryApp.opacity(0.2), lineWidth: 1)
-                                )
-                        }.offset(x: ScaleUtility.scaledSpacing(-15), y: ScaleUtility.scaledSpacing(15)),
-                        alignment: .topTrailing
-                    )
+                }
+                
+                
+                Button{
+                    clearSelectedImage()
+                } label: {
+                    Image(.crossIcon2)
+                        .resizable()
+                        .frame(width: ScaleUtility.scaledValue(18), height: ScaleUtility.scaledValue(18))
+                        .padding(.all, ScaleUtility.scaledSpacing(5))
+                        .background(Color.primaryApp.opacity(0.1))
+                        .cornerRadius(30)
+                        .overlay(
+                            RoundedRectangle(cornerRadius: 30)
+                                .stroke(Color.primaryApp.opacity(0.2), lineWidth: 1)
+                        )
+                }.offset(x: ScaleUtility.scaledSpacing(-15), y: ScaleUtility.scaledSpacing(15))
+             
+                 
             }
             .frame(width: geometry.size.width, height: min(geometry.size.height, ScaleUtility.scaledValue(345)))
         }

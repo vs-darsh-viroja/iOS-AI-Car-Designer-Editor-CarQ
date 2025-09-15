@@ -17,15 +17,15 @@ struct CarTypesView: View {
     }
     
     private let carTypes: [CarType] = [
-        .init(name: "Sedan", imageName: "dummyCarImage"),
-        .init(name: "SUV", imageName: "dummyCarImage"),
-        .init(name: "Hatchback", imageName: "dummyCarImage"),
-        .init(name: "Coupe", imageName: "dummyCarImage"),
-        .init(name: "Convertible", imageName: "dummyCarImage"),
-        .init(name: "Wagon", imageName: "dummyCarImage"),
-        .init(name: "Pickup", imageName: "dummyCarImage"),
+        .init(name: "Standard", imageName: "dummyCarImage"),
         .init(name: "Minivan", imageName: "dummyCarImage"),
+        .init(name: "Bike", imageName: "dummyCarImage"),
+        .init(name: "Hatchback", imageName: "dummyCarImage"),
         .init(name: "Sports Car", imageName: "dummyCarImage"),
+        .init(name: "Convertible", imageName: "dummyCarImage"),
+        .init(name: "Pickup", imageName: "dummyCarImage"),
+        .init(name: "Coupe", imageName: "dummyCarImage"),
+        .init(name: "Wagon", imageName: "dummyCarImage"),
         .init(name: "Crossover", imageName: "dummyCarImage")
     ]
     

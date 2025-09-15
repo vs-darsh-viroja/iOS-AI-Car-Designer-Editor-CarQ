@@ -75,12 +75,12 @@ struct ColorPickerSheet: View {
                  
                         Image(.buttonBg3)
                             .resizable()
-                            .frame(width: isIPad ? ScaleUtility.scaledValue(715) : ScaleUtility.scaledValue(345),
+                            .frame(width: ScaleUtility.scaledValue(345),
                                    height: ScaleUtility.scaledValue(60))
                             .overlay {
                                 Image(.selectButtonBg)
                                     .resizable()
-                                    .frame(width: isIPad ? ScaleUtility.scaledValue(715) : ScaleUtility.scaledValue(345),
+                                    .frame(width:ScaleUtility.scaledValue(345),
                                            height: ScaleUtility.scaledValue(60))
                             }
                     

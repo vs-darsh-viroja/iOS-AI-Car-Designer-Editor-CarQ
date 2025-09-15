@@ -108,9 +108,33 @@ final class GenerationViewModel: ObservableObject {
         }
     }
     
+    func startMultiImageJob(
+        image: UIImage,
+        maskImage: UIImage,
+        referenceImage: UIImage?,
+        prompt: String
+    ) async -> Bool {
+        errorMessage = nil
+        shouldReturn = false
+        do {
+            let resp = try await network.uploadMultipleImage(
+                image: image,
+                maskImage: maskImage,
+                referenceImage: referenceImage,
+                prompt: prompt
+            )
+            guard resp.status, let id = resp.data?.id else {
+                errorMessage = "Failed to start processing."
+                return false
+            }
+            taskID = id
+            return true
+        } catch {
+            errorMessage = error.localizedDescription
+            return false
+        }
+    }
 
-
-    
     func pollUntilReady(
         pollInterval: TimeInterval = 15,
         overallTimeout: TimeInterval = 300

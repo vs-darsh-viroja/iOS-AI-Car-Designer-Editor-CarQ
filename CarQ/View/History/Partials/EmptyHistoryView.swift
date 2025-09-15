@@ -20,6 +20,6 @@ struct EmptyHistoryView: View {
                 .multilineTextAlignment(.center)
                 .foregroundColor(Color.primaryApp.opacity(0.2))
         }
-        .padding(.top, ScaleUtility.scaledSpacing(150))
+        .padding(.top, isIPad ? ScaleUtility.scaledSpacing(250) : ScaleUtility.scaledSpacing(150))
     }
 }

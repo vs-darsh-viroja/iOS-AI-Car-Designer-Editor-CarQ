@@ -110,7 +110,9 @@ struct ColorListView: View {
                 // CONVERT UIColor TO HEX STRING
                 customColorHex = selectedUIColor.toHexString()
             }
-            .presentationDetents([.fraction(0.9)])
+            .presentationDetents(  isIPad
+                                     ? [.large, .fraction(0.95)]
+                                     :  [.fraction(0.9)])
             .presentationDragIndicator(.visible)
         }
     }
