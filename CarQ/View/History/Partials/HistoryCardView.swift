@@ -45,11 +45,13 @@ struct HistoryCardView: View {
                             print("Failed to load image: \(error)")
                         }
                         .resizable()
-                        .frame(width: ScaleUtility.scaledValue(165), height: ScaleUtility.scaledValue(170))
+                        .frame(width: isIPad ? 385 * ipadWidthRatio : ScaleUtility.scaledValue(165),
+                               height: isIPad ? 320 * ipadHeightRatio : ScaleUtility.scaledValue(170))
                         .overlay {
                             Image(.cardBg)
                                 .resizable()
-                                .frame(width: ScaleUtility.scaledValue(166.00098), height: ScaleUtility.scaledValue(172.00098))
+                                .frame(width: isIPad ? 389 * ipadWidthRatio : ScaleUtility.scaledValue(166.00098),
+                                       height: isIPad ? 324 * ipadHeightRatio : ScaleUtility.scaledValue(172.00098))
                         }
                 } else {
                     // Fallback when no image URL is available
@@ -73,7 +75,9 @@ struct HistoryCardView: View {
             VStack {
                 HStack {
                     Spacer()
-                    Button(action: onDelete) {
+                    Button (action :{
+                        onDelete()
+                    }) {
                         Image(.deleteIcon2)
                             .resizable()
                             .frame(width: ScaleUtility.scaledValue(16), height: ScaleUtility.scaledValue(16))

@@ -73,7 +73,7 @@ struct HistoryView: View {
                     .padding(.horizontal, ScaleUtility.scaledSpacing(15))
                     
                     Spacer()
-                        .frame(height: ScaleUtility.scaledValue(150))
+                        .frame(height: isIPad ? ScaleUtility.scaledValue(250) : ScaleUtility.scaledValue(150))
               
                 }
             }
@@ -101,7 +101,10 @@ struct HistoryView: View {
                 if let record = recordToDelete {
                     deleteRecord(record)
                 }
-            }
+                if showPreview {
+                    showPreview = false
+                }
+             }
         } message: {
             Text("This will permanently delete the image from your history. This action cannot be undone.")
         }
@@ -116,7 +119,7 @@ struct HistoryView: View {
                         .cornerRadius(10)
                         .transition(.scale)
                 }
-                .offset(y: ScaleUtility.scaledSpacing(-100))
+                .offset(y: ScaleUtility.scaledSpacing(-200))
             }
         }
         .navigationDestination(isPresented: $showPreview) {

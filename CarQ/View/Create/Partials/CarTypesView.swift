@@ -62,7 +62,7 @@ struct CarTypesView: View {
                                     .font(FontManager.ChakraPetchRegularFont(size: .scaledFontSize(14)))
                                     .multilineTextAlignment(.center)
                                     .foregroundColor(Color.primaryApp)
-                                    .frame(width: ScaleUtility.scaledValue(104))
+                                    .frame(width: isIPad ? ScaleUtility.scaledValue(114) : ScaleUtility.scaledValue(104))
                             }
                         }
                         .buttonStyle(.plain)

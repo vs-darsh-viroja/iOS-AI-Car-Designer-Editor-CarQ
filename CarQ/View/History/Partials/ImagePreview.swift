@@ -53,7 +53,24 @@ struct ImagePreview: View {
                         KFImage(imageURL)
                             .placeholder {
                                 ZStack {
-                                    Color.primaryApp.opacity(0.1)
+                                    
+                                    if isIPad {
+                                        
+                                        Image(.imageBg)
+                                            .resizable()
+                                            .frame(width: 707 * ipadWidthRatio ,
+                                                   height: 813.99463 * ipadHeightRatio)
+                                         
+                                        
+                                    }
+                                    else {
+                                        
+                                        Image(.imageBg)
+                                            .resizable()
+                                            .scaledToFit()
+                                     
+                                    }
+                                    
                                     ProgressView()
                                         .tint(Color.primaryApp)
                                 }
@@ -64,15 +81,17 @@ struct ImagePreview: View {
                             .resizable()
                             .scaledToFit()
                             .padding(.horizontal, ScaleUtility.scaledSpacing(15))
-                            .frame(minHeight: isIPad ? ScaleUtility.scaledValue(645) : ScaleUtility.scaledValue(345))
+                            .frame(minHeight: isIPad
+                                   ? ScaleUtility.scaledValue(480.99463)
+                                   : ScaleUtility.scaledValue(345))
                             .overlay {
                                 
                                 if isIPad {
                                     
                                     Image(.imageBg)
                                         .resizable()
-                                        .frame(width: ScaleUtility.scaledValue(647.01) ,
-                                               height: ScaleUtility.scaledValue(346.99463))
+                                        .frame(width: 707 * ipadWidthRatio ,
+                                               height: 813.99463 * ipadHeightRatio)
                         
                                 }
                                 else {
@@ -94,6 +113,7 @@ struct ImagePreview: View {
                     },
                                onDelete: {
                         onDelete()
+                       
                     },
                                onShare: {
                         shareImage()
@@ -109,8 +129,7 @@ struct ImagePreview: View {
             
             
         }
-        .ignoresSafeArea(.container, edges: [.bottom])
-        .toolbar(.hidden, for: .navigationBar)
+        .navigationBarHidden(true)
         .background(Color.secondaryApp.ignoresSafeArea(.all))
         .onAppear {
             if let relativePath = record.value(forKey: "localPath") as? String {

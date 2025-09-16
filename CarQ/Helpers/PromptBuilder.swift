@@ -10,50 +10,128 @@ import Foundation
 public enum PromptBuilder {
     
     // Optional vocab (use the strings your Finish/Effect pickers emit)
-     private static let finishPrompts: [String: String] = [
-         "Gloss": "high-gloss clearcoat finish with crisp reflections",
-         "Matte": "matte paint finish with soft, diffuse reflections",
-         "Satin": "satin paint finish with gentle sheen",
-         "Metallic": "metallic flake finish that subtly sparkles"
-     ]
 
-     private static let effectPrompts: [String: String] = [
-         "Pearlescent": "pearlescent effect with color shift under light",
-         "Chrome": "chrome-like reflective effect (keep within realistic paint behavior)",
-         "Two-Tone": "two-tone paint layout with tasteful separation lines",
-         "Candy": "candy coat depth with rich, translucent layers"
-     ]
+    private static let finishPrompts: [String: String] = [
+        "High-Gloss":        "high-gloss clearcoat finish with crisp reflections",
+        "Semi-Gloss":   "semi-gloss finish with moderate reflections",
+        "Satin":        "satin paint finish with gentle sheen",
+        "Matte":        "matte paint finish with soft, diffuse reflections",
+        "Flat":         "flat paint finish with minimal reflectivity",
+        "Textured":     "subtle textured finish (fine microtexture), keep realistic for automotive paint",
+        "Brushed":      "brushed metal look with fine linear grain (keep subtle and realistic for automotive panels)",
+        "Hammered":     "subtle hammered-metal texture (tasteful, realistic intensity)",
+        "Crackle":      "fine crackle effect (very subtle, vintage-style; avoid heavy patterns)",
+        "Distressed":   "lightly weathered patina effect (tasteful, realistic for automotive finish)",
+        "Metallic":     "metallic flake finish that subtly sparkles" // keep as a finish variant too
+    ]
+
+    // Canonical Effect prompts (keys must match canonical names below)
+    private static let effectPrompts: [String: String] = [
+        "Pearlescent": "pearlescent effect with color shift under light",
+        "Chrome":      "chrome-like reflective effect (keep within realistic paint behavior)",
+        "Two-Tone":    "two-tone paint layout with tasteful separation lines",
+        "Candy":       "candy coat depth with rich, translucent layers",
+        "Metallic":    "metallic flake effect that adds subtle sparkle",
+        "Sparkle":     "fine sparkle effect in the paint (subtle, tasteful)",
+        "Gradient":    "smooth tonal gradient across the body within the chosen color family",
+        "Stripes":     "racing stripe accent (clean, proportional, aligned with car body lines)",
+        // new additions to reach 10:
+        "Iridescent":  "iridescent paint effect with rainbow-like color shifts under light",
+        "Holographic": "holographic effect with prismatic shimmer across the surface"
+    ]
+
+    // UI → Canonical aliases (case-sensitive to your UI strings)
+    private static let finishAliases: [String: String] = [
+        "High-Gloss":  "Gloss",
+        "Semi-Gloss":  "Semi-Gloss",
+        "Satin":       "Satin",
+        "Matte":       "Matte",
+        "Flat":        "Flat",
+        "Textured":    "Textured",
+        "Brushed":     "Brushed",
+        "Hammered":    "Hammered",
+        "Crackle":     "Crackle",
+        "Distressed":  "Distressed",
+        "Metallic":    "Metallic"
+    ]
+
+    private static let effectAliases: [String: String] = [
+        "Pearl":    "Pearlescent",
+        "Pearlescent": "Pearlescent",
+        "Chrome":   "Chrome",
+        "Two-Tone": "Two-Tone",
+        "Candy":    "Candy",
+        "Metallic": "Metallic",
+        "Sparkle":  "Sparkle",
+        "Gradient": "Gradient",
+        "Stripes":  "Stripes",
+        "Iridescent": "Iridescent",
+        "Holographic": "Holographic",
+
+    ]
+
+    // Helpers to normalize selections to canonical keys
+    private static func canonicalFinish(from uiValue: String?) -> String? {
+        guard let v = uiValue, !v.isEmpty else { return nil }
+        // if UI already passes canonical name, keep it
+        if finishPrompts[v] != nil { return v }
+        // else map alias
+        return finishAliases[v]
+    }
+
+    private static func canonicalEffect(from uiValue: String?) -> String? {
+        guard let v = uiValue, !v.isEmpty else { return nil }
+        if effectPrompts[v] != nil { return v }
+        return effectAliases[v]
+    }
+
 
     
-    // MARK: - Vocab Maps (keys must match UI values exactly)
+    // Accessory prompts
+    private static let accessoryPrompts: [String: String] = [
+        "Spoiler":      "add a sporty rear spoiler",
+        "Hood Scoop":   "add a functional hood scoop",
+        "Side Skirts":  "add aerodynamic side skirts",
+        "Roof Rack":    "add a practical roof rack",
+        "Bull Bar":     "add a rugged bull bar to the front",
+        "Mudflaps":     "add durable mudflaps behind the wheels",
+        "Sunroof":      "include a glass sunroof",
+        "LED Strips":   "add modern LED accent strips",
+        "Chrome Trim":  "enhance with chrome trim details",
+        "Diffuser":     "add a performance rear diffuser"
+    ]
+
+    // Car type prompts
     private static let carTypePrompts: [String: String] = [
-        "Sedan": "sleek sedan silhouette, four-door configuration, balanced proportions",
-        "SUV": "modern SUV body, muscular stance, elevated ride height",
-        "Hatchback": "compact hatchback form, short rear overhang, urban-friendly size",
-        "Coupe": "two-door coupe, sporty proportions, low roofline",
-        "Convertible": "convertible body style with open-top appearance",
-        "Wagon": "long-roof wagon, extended cargo area, practical yet stylish",
-        "Pickup": "pickup truck bed, rugged styling, practical stance",
-        "Minivan": "spacious minivan body, sliding doors, family-oriented layout",
-        "Sports Car": "low, wide sports car stance, performance-forward proportions",
-        "Crossover": "crossover silhouette, car-like ride with SUV cues"
+        "Standard":     "a standard passenger car body style",
+        "Minivan":      "a practical family minivan body",
+        "Bike":         "a sleek motorcycle design",
+        "Hatchback":    "a compact hatchback design",
+        "Sports Car":   "a low-profile sports car design",
+        "Convertible":  "a convertible body style with open roof",
+        "Pickup":       "a rugged pickup truck body",
+        "Coupe":        "a compact coupe body style",
+        "Wagon":        "a spacious station wagon design",
+        "Crossover":    "a modern crossover SUV body"
     ]
 
+    // Design style prompts
     private static let designStylePrompts: [String: String] = [
-        "Muscle": "muscle car style, wide stance, aggressive hood bulge, bold presence",
-        "Japanese": "Japanese tuner style, clean lines, tasteful aero, aftermarket vibe",
-        "Modern": "contemporary design language, crisp surfaces, LED signature",
-        "Luxurious": "premium luxury trim, chrome accents, fine materials, refined aesthetic",
-        "Classic": "classic-inspired cues, timeless lines, subtle chrome details",
-        "Sports": "sport package, aero kit, aggressive front fascia, performance look",
-        "Retro": "retro-inspired details, nostalgic shapes blended with modern execution",
-        "Futuristic": "futuristic elements, parametric surfacing, seamless lighting",
-        "Off-Road": "off-road package, higher ground clearance, protective cladding",
-        "Racing": "track-focused aero, low ride height, functional vents and splitter",
-        "Minimalist": "minimal design, clean surfaces, restrained details, understated look",
-        "Aggressive": "aggressive styling, sharp angles, dominant stance"
+        "Muscle":       "inspired by classic American muscle car styling",
+        "Japanese":     "inspired by sleek Japanese tuner styling",
+        "Modern":       "with clean, modern automotive design cues",
+        "Luxurious":    "styled with premium luxury detailing",
+        "Classic":      "styled with timeless classic automotive design",
+        "Sports":       "with aggressive sports styling",
+        "Retro":        "styled with a nostalgic retro aesthetic",
+        "Futuristic":   "styled with futuristic concept car elements",
+        "Off-Road":     "built for off-road ruggedness",
+        "Racing":       "styled for motorsport racing performance",
+        "Minimalist":   "with a clean, minimalist automotive design",
+        "Aggressive":   "with sharp, aggressive body styling"
     ]
 
+    
     // NOTE: Keys here must match the `selectedColor` string values from ColorListView.
     // e.g. "blackIColor", "whiteColor", "custom", etc.
     private static let colorPrompts: [String: String] = [
@@ -64,23 +142,6 @@ public enum PromptBuilder {
         "blueColor":   "primary body color: metallic blue paint",
         "greenColor":  "primary body color: rich emerald green paint"
         // Note: "custom" is handled separately with the actual hex/RGB values
-    ]
-
-    private static let accessoryPrompts: [String: String] = [
-        "Spoiler": "subtle rear spoiler",
-        "Hood Scoop": "functional hood scoop",
-        "Side Skirts": "side skirts for a lower visual stance",
-        "Roof Rack": "sleek roof rack",
-        "Bull Bar": "front bull bar for protection",
-        "Mudflaps": "practical mudflaps",
-        "Sunroof": "panoramic glass sunroof",
-        "Tinted Windows": "tastefully tinted windows",
-        "LED Strips": "accent LED light strips",
-        "Racing Stripes": "dual racing stripes",
-        "Chrome Trim": "additional chrome trim accents",
-        "Custom Grille": "custom front grille",
-        "Diffuser": "rear diffuser",
-        "Fender Flares": "bolt-on fender flares"
     ]
 
     // MARK: - Magical Modification Change Type Prompts

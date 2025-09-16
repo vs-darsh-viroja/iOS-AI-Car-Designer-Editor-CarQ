@@ -50,8 +50,8 @@ struct ResultView: View {
                                         
                                         Image(.imageBg)
                                             .resizable()
-                                            .frame(width: ScaleUtility.scaledValue(647.01) ,
-                                                   height: ScaleUtility.scaledValue(346.99463))
+                                            .frame(width: 702 * ipadWidthRatio ,
+                                                   height: 813.99463 * ipadHeightRatio)
                                          
                                         
                                     }
@@ -75,15 +75,17 @@ struct ResultView: View {
                             .resizable()
                             .scaledToFit()
                             .padding(.horizontal, ScaleUtility.scaledSpacing(15))
-                            .frame(minHeight: isIPad ? ScaleUtility.scaledValue(645) : ScaleUtility.scaledValue(345))
+                            .frame(minHeight: isIPad
+                                   ? ScaleUtility.scaledValue(480.99463)
+                                   : ScaleUtility.scaledValue(345))
                             .overlay {
                                 
                                 if isIPad {
                                     
                                     Image(.imageBg)
                                         .resizable()
-                                        .frame(width: ScaleUtility.scaledValue(647.01) ,
-                                               height: ScaleUtility.scaledValue(346.99463))
+                                        .frame(width: 702 * ipadWidthRatio ,
+                                               height: 813.99463 * ipadHeightRatio)
                              
                                     
                                 }
@@ -248,4 +250,58 @@ struct ResultView: View {
 // ResultView.swift
 extension Notification.Name {
     static let historyDidChange = Notification.Name("historyDidChange")
+}
+
+
+
+// MARK: - Preview
+import SwiftUI
+
+struct ResultView_Previews: PreviewProvider {
+    // Loaded state with a placeholder image URL
+    static var vmLoaded: GenerationViewModel = {
+        let vm = GenerationViewModel()
+        vm.resultData = ResultData(
+            id: "preview-id",
+            imageURLs: ["https://setaswall.com/wp-content/uploads/2019/03/Ball-Glass-Sunset-Wallpaper-1024x1024.jpg"] // placeholder
+        )
+        return vm
+    }()
+
+    // Empty state (no image yet)
+    static var vmEmpty = GenerationViewModel()
+
+    static var previews: some View {
+        Group {
+            // iPhone — Loaded
+            ResultView(
+                viewModel: vmLoaded,
+                onBack: {},
+                onClose: {}
+            )
+            .previewDisplayName("iPhone • Loaded")
+            .previewDevice("iPhone 15 Pro")
+            .preferredColorScheme(.dark)
+
+            // iPhone — Empty
+            ResultView(
+                viewModel: vmEmpty,
+                onBack: {},
+                onClose: {}
+            )
+            .previewDisplayName("iPhone • Empty")
+            .previewDevice("iPhone 15 Pro")
+            .preferredColorScheme(.dark)
+
+            // iPad — Loaded
+            ResultView(
+                viewModel: vmLoaded,
+                onBack: {},
+                onClose: {}
+            )
+            .previewDisplayName("iPad • Loaded")
+            .previewDevice("iPad Pro (12.9-inch) (6th generation)")
+            .preferredColorScheme(.dark)
+        }
+    }
 }

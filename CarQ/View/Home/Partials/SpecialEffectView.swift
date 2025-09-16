@@ -17,16 +17,16 @@ struct SpecialEffectView: View {
     }
     
     private let effectTypes: [EffectType] = [
-        .init(name: "Metallic", imageName: "dummyCarImage"),
-        .init(name: "Pearl", imageName: "dummyCarImage"),
-        .init(name: "Matte", imageName: "dummyCarImage"),
-        .init(name: "Glossy", imageName: "dummyCarImage"),
+        .init(name: "Pearlescent", imageName: "dummyCarImage"),
         .init(name: "Chrome", imageName: "dummyCarImage"),
-        .init(name: "Satin", imageName: "dummyCarImage"),
-        .init(name: "Sparkle", imageName: "dummyCarImage"),
-        .init(name: "Gradient", imageName: "dummyCarImage"),
         .init(name: "Two-Tone", imageName: "dummyCarImage"),
-        .init(name: "Racing Stripes", imageName: "dummyCarImage")
+        .init(name: "Candy", imageName: "dummyCarImage"),
+        .init(name: "Metallic", imageName: "dummyCarImage"),
+        .init(name: "Sparkle", imageName: "dummyCarImage"),
+        .init(name: "Stripes", imageName: "dummyCarImage"),
+        .init(name: "Gradient", imageName: "dummyCarImage"),
+        .init(name: "Iridescent", imageName: "dummyCarImage"),
+        .init(name: "Holographic", imageName: "dummyCarImage")
     ]
     
     var body: some View {
@@ -62,7 +62,7 @@ struct SpecialEffectView: View {
                                     .font(FontManager.ChakraPetchRegularFont(size: .scaledFontSize(14)))
                                     .multilineTextAlignment(.center)
                                     .foregroundColor(Color.primaryApp)
-                                    .frame(width: ScaleUtility.scaledValue(104))
+                                    .frame(width: isIPad ? ScaleUtility.scaledValue(114) : ScaleUtility.scaledValue(104))
                             }
                         }
                         .buttonStyle(.plain)

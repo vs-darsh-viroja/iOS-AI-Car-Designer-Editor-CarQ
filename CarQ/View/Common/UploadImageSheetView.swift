@@ -44,11 +44,12 @@ struct UploadImageSheetView: View {
                         } label: {
                             Image(.cameraIcon)
                                 .resizable()
-                                .frame(width: ScaleUtility.scaledValue(100), height: ScaleUtility.scaledValue(100))
+                                .frame(width: isIPad ? ScaleUtility.scaledValue(150) : ScaleUtility.scaledValue(100),
+                                       height: isIPad ? ScaleUtility.scaledValue(150) : ScaleUtility.scaledValue(100))
                         }
                         
                         Rectangle()
-                            .frame(width: ScaleUtility.scaledValue(2),height: ScaleUtility.scaledValue(60))
+                            .frame(width: ScaleUtility.scaledValue(2),height: isIPad ?  ScaleUtility.scaledValue(100) : ScaleUtility.scaledValue(60))
                             .foregroundColor(Color.primaryApp.opacity(0.5))
                         
                         Button {
@@ -56,7 +57,8 @@ struct UploadImageSheetView: View {
                         } label: {
                             Image(.galleryIcon)
                                 .resizable()
-                                .frame(width: ScaleUtility.scaledValue(100), height: ScaleUtility.scaledValue(100))
+                                .frame(width: isIPad ? ScaleUtility.scaledValue(150) : ScaleUtility.scaledValue(100),
+                                       height: isIPad ? ScaleUtility.scaledValue(150) : ScaleUtility.scaledValue(100))
                         }
                     }
                 }

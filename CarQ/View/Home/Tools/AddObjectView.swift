@@ -231,7 +231,7 @@ struct AddObjectView: View {
                     
                 }
             })
-            .presentationDetents([.height( isIPad ? 410 : 210)])
+            .presentationDetents([.height( isIPad ? 310 : 210)])
             .presentationCornerRadius(25)
             .presentationDragIndicator(.visible)
         }

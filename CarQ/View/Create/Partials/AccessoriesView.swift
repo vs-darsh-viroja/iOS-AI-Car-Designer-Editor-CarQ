@@ -24,13 +24,10 @@ struct AccessoriesView: View {
         .init(name: "Bull Bar", imageName: "dummyCarImage"),
         .init(name: "Mudflaps", imageName: "dummyCarImage"),
         .init(name: "Sunroof", imageName: "dummyCarImage"),
-        .init(name: "Tinted Windows", imageName: "dummyCarImage"),
         .init(name: "LED Strips", imageName: "dummyCarImage"),
-        .init(name: "Racing Stripes", imageName: "dummyCarImage"),
         .init(name: "Chrome Trim", imageName: "dummyCarImage"),
-        .init(name: "Custom Grille", imageName: "dummyCarImage"),
         .init(name: "Diffuser", imageName: "dummyCarImage"),
-        .init(name: "Fender Flares", imageName: "dummyCarImage")
+
     ]
     
     var body: some View {
@@ -66,7 +63,7 @@ struct AccessoriesView: View {
                                     .font(FontManager.ChakraPetchRegularFont(size: .scaledFontSize(14)))
                                     .multilineTextAlignment(.center)
                                     .foregroundColor(Color.primaryApp)
-                                    .frame(width: ScaleUtility.scaledValue(104))
+                                    .frame(width: isIPad ? ScaleUtility.scaledValue(114) : ScaleUtility.scaledValue(104))
                             }
                         }
                         .buttonStyle(.plain)

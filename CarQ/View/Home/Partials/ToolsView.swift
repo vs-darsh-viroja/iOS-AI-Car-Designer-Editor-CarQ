@@ -52,7 +52,6 @@ struct ToolsView: View {
                                 handleToolTap(for: tool.name)
                             }) {
                          
-                                    
                                     Image(.toolsBg)
                                         .resizable()
                                         .frame(width: isIPad ? ScaleUtility.scaledValue(345) : ScaleUtility.scaledValue(165),

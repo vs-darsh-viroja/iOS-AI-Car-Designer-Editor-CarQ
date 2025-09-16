@@ -15,15 +15,32 @@ struct GenerateButtonView: View {
   
     var body: some View {
         ZStack {
-            Image(.bgBlur)
-                .resizable()
+            
+            Rectangle()
+                .fill(
+                    LinearGradient(
+                        gradient: Gradient(colors: [
+                            Color.black.opacity(0.8),
+                            Color.black.opacity(0.4),
+                            Color.black.opacity(0.0)
+                        ]),
+                        startPoint: .bottom,
+                        endPoint: .top
+                    )
+                )
                 .frame(maxWidth: .infinity)
                 .frame(height: isIPad ? ScaleUtility.scaledValue(157) : ScaleUtility.scaledValue(117))
                 .allowsHitTesting(true)
-                .ignoresSafeArea(.all)
             
             
+                Image(.bgBlur)
+                    .resizable()
+                    .frame(maxWidth: .infinity)
+                    .frame(height: isIPad ? ScaleUtility.scaledValue(157) : ScaleUtility.scaledValue(117))
+                    .allowsHitTesting(true)
+                    .ignoresSafeArea(.all)
             
+                
             Button {
                 action()
             } label: {

@@ -37,12 +37,18 @@ struct ProcessingView: View {
                 if showText {
                     Image(.steeringIcon2)
                         .resizable()
-                        .frame(width: ScaleUtility.scaledValue(253),
-                               height: ScaleUtility.scaledValue(253))
+                        .frame(width: isIPad
+                               ? ScaleUtility.scaledValue(453)
+                               : ScaleUtility.scaledValue(253),
+                               height: isIPad
+                               ? ScaleUtility.scaledValue(453)
+                               : ScaleUtility.scaledValue(253))
                         // 👇 Apply oscillating horizontal offset
                         .rotationEffect(.degrees(steeringAngle))      // NEW
                         .onAppear { startSteeringRotation() }         // NEW
-                        .offset(y: ScaleUtility.scaledSpacing(28))
+                        .offset(y: isIPad
+                                ? ScaleUtility.scaledSpacing(48)
+                                : ScaleUtility.scaledSpacing(28))
                     
                     Text(displayText)
                         .font(FontManager.ChakraPetchRegularFont(size: .scaledFontSize(18)))
@@ -54,15 +60,23 @@ struct ProcessingView: View {
                 VStack(spacing: 0) {
                     Image(.generateTop)
                         .resizable()
-                        .frame(width: ScaleUtility.scaledValue(375),
-                               height: ScaleUtility.scaledValue(440))
-                        .offset(y: topImageOffset)
+                        .frame(width: isIPad
+                               ? 815 * ipadWidthRatio
+                               : ScaleUtility.scaledValue(375),
+                               height: isIPad
+                               ? 750 * ipadWidthRatio
+                               : ScaleUtility.scaledValue(440))
+                        .offset(y: ScaleUtility.scaledSpacing(topImageOffset))
                     
                     Image(.generateBottom)
                         .resizable()
-                        .frame(width: ScaleUtility.scaledValue(375),
-                               height: ScaleUtility.scaledValue(440))
-                        .offset(y: bottomImageOffset)
+                        .frame(width: isIPad
+                               ? 815 * ipadWidthRatio
+                               : ScaleUtility.scaledValue(375),
+                               height: isIPad
+                               ? 750 * ipadWidthRatio
+                               : ScaleUtility.scaledValue(440))
+                        .offset(y: ScaleUtility.scaledSpacing(bottomImageOffset))
                 }
             }
         }
@@ -71,8 +85,8 @@ struct ProcessingView: View {
         .onAppear {
             onAppear()
             withAnimation(.easeOut(duration: 0.8)) {
-                topImageOffset = 28
-                bottomImageOffset = -28
+                topImageOffset = isIPad ? 42 : 28
+                bottomImageOffset = isIPad ? -42 : -28
             }
             DispatchQueue.main.asyncAfter(deadline: .now() + 0.8) {
                 showText = true
@@ -114,4 +128,18 @@ struct ProcessingView: View {
              steeringAngle = 8 // oscillate to the right (±8°)
          }
      }
+}
+
+// MARK: - Preview
+
+struct ProcessingView_Previews: PreviewProvider {
+    static var previews: some View {
+        ProcessingView(
+            viewModel: GenerationViewModel(),
+            onBack: { },
+            onAppear: { },
+            onClose: { }
+        )
+        .preferredColorScheme(.dark) // optional, matches your app theme
+    }
 }

@@ -148,6 +148,7 @@ struct MagicalModificationView: View {
                         }
                         else {
     //                        showPopUp = false
+                            
                             isProcessing = false
 
                         }

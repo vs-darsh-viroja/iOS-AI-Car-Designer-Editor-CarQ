@@ -18,7 +18,7 @@ struct FinishView: View {
     }
     
     private let finishTypes: [FinishType] = [
-        .init(name: "High Gloss", imageName: "dummyCarImage"),
+        .init(name: "High-Gloss", imageName: "dummyCarImage"),
         .init(name: "Semi-Gloss", imageName: "dummyCarImage"),
         .init(name: "Satin", imageName: "dummyCarImage"),
         .init(name: "Matte", imageName: "dummyCarImage"),
@@ -63,7 +63,7 @@ struct FinishView: View {
                                     .font(FontManager.ChakraPetchRegularFont(size: .scaledFontSize(14)))
                                     .multilineTextAlignment(.center)
                                     .foregroundColor(Color.primaryApp)
-                                    .frame(width: ScaleUtility.scaledValue(104))
+                                    .frame(width: isIPad ? ScaleUtility.scaledValue(114) : ScaleUtility.scaledValue(104))
                             }
                         }
                         .buttonStyle(.plain)
