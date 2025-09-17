@@ -114,6 +114,7 @@ struct RemoveObjectView: View {
                     onBack()
                 }
             )
+            .background(Color.secondaryApp.edgesIgnoringSafeArea(.all))
         }
 
         .onChange(of: targetPhotoItem) { newItem in
@@ -152,8 +153,8 @@ struct RemoveObjectView: View {
                 }
             })
             .presentationDetents([.height( isIPad ? 410 : 210)])
-            .presentationCornerRadius(25)
-            .presentationDragIndicator(.visible)
+            .presentationCornerRadius(20)
+         
         }
         .fullScreenCover(isPresented: $showCameraPicker) {
             ImagePicker(sourceType: .camera) { image in

@@ -178,7 +178,28 @@ struct PaywallHeaderView: View {
             
         }
         .ignoresSafeArea(.all)
+        .onAppear {
+            guard !hasStartedCountdown else { return }  // prevent multiple starts
+            hasStartedCountdown = true
 
+            if delayCloseButton {
+                isCountdownFinished = false
+                closeProgress = 0
+
+                // Animate the ring visually
+                withAnimation(.linear(duration: delaySeconds)) {
+                    closeProgress = 1
+                }
+
+                // Flip the gate AFTER the duration
+                DispatchQueue.main.asyncAfter(deadline: .now() + delaySeconds) {
+                    withAnimation { isCountdownFinished = true }
+                }
+            } else {
+                closeProgress = 1
+                isCountdownFinished = true
+            }
+        }
     }
 }
 
@@ -329,7 +350,7 @@ struct PaywallPlanView: View {
     }
 }
 
-struct PaywallBottmView: View{
+struct PaywallBottmView: View {
     let isProcess: Bool
     @EnvironmentObject var remoteConfigManager: RemoteConfigManager
     @EnvironmentObject var purchaseManager: PurchaseManager

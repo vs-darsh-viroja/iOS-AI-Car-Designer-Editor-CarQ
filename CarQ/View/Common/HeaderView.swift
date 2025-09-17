@@ -32,7 +32,7 @@ struct HeaderView: View {
             
             Spacer()
             
-            if isCross {
+           
                 Button {
                     onClose()
                 } label: {
@@ -46,14 +46,10 @@ struct HeaderView: View {
                         }
                         .cornerRadius(45)
                 }
-
+                .opacity(isCross ? 1 : 0)
        
-            }
-            else {
-                Image(.crownIcon)
-                    .resizable()
-                    .frame(width: ScaleUtility.scaledValue(42), height: ScaleUtility.scaledValue(42))
-            }
+            
+      
         }
         .padding(.horizontal, ScaleUtility.scaledSpacing(15))
     }

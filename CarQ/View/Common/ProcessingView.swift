@@ -101,6 +101,7 @@ struct ProcessingView: View {
             ResultView(viewModel: viewModel) { onBack() } onClose: {
                 onClose()
             }
+            .background(Color.secondaryApp.edgesIgnoringSafeArea(.all))
         }
         .onChange(of: viewModel.shouldReturn) { goBack in
             if goBack { onBack() }

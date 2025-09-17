@@ -10,9 +10,18 @@ import SwiftUI
 
 struct PromptView: View {
     
+    var screen: String
     @Binding var prompt: String
     @FocusState.Binding var isInputFocused: Bool
     
+        // MARK: - State for shuffled run
+    @State private var createPrompts: [String] = CreatePrompts.all.shuffled()
+    @State private var magicalModificationPrompts: [String] = MagicalModificationPrompts.all.shuffled()
+    @State private var modifyObjectPrompts: [String] = ModifyObjectPrompts.all.shuffled()
+    @State private var addObjectPrompts: [String] = AddObjectPrompts.all.shuffled()
+    @State private var replaceObjectPrompts: [String] = ReplaceObjectPrompts.all.shuffled()
+    @State private var currentIndex: Int = 0
+
     var body: some View {
        
             Image(.promptField)
@@ -54,21 +63,42 @@ struct PromptView: View {
                             }
 
                             Spacer()
-                               
-                            HStack(spacing: ScaleUtility.scaledSpacing(5)) {
+                            
+                            Button {
                                 
-                                Image(.lampIcon)
-                                    .resizable()
-                                    .frame(width: ScaleUtility.scaledValue(18), height: ScaleUtility.scaledValue(18))
+                            switch screen {
+                                case "Create":
+                                    return  showNextCreatePrompt()
+                                case "MagicalModification":
+                                    return showNextMagicalModificationPrompt()
+                                case "ModifyObject":
+                                    return showNextModifyObjectPrompt()
+                                case "AddObject":
+                                    return showNextAddObjectPrompt()
+                                case "ReplaceObject":
+                                    return showNextReplaceObjectPrompt()
+                                default:
+                                    return showNextCreatePrompt()
                                 
-                                Text("Get Idea")
-                                    .font(FontManager.ChakraPetchRegularFont(size: .scaledFontSize(14)))
-                              
+                                }
+                                
+                                showNextCreatePrompt()
+                            } label: {
+                                HStack(spacing: ScaleUtility.scaledSpacing(5)) {
+                                    
+                                    Image(.lampIcon)
+                                        .resizable()
+                                        .frame(width: ScaleUtility.scaledValue(18), height: ScaleUtility.scaledValue(18))
+                                    
+                                    Text("Get Idea")
+                                        .font(FontManager.ChakraPetchRegularFont(size: .scaledFontSize(14)))
+                                        .foregroundColor(Color.primaryApp.opacity(0.5))
+                                    
+                                }
+                        
                                 
                             }
-                            .foregroundColor(Color.primaryApp)
-                            .opacity(0.5)
-                            
+
                         }
                        
                         
@@ -78,4 +108,65 @@ struct PromptView: View {
                 }
         
     }
+    
+    private func showNextCreatePrompt() {
+        guard !createPrompts.isEmpty else { return }
+        prompt = createPrompts[currentIndex]
+        currentIndex += 1
+
+        if currentIndex >= createPrompts.count {
+            // Reshuffle for a fresh random run after showing all 30
+            createPrompts.shuffle()
+            currentIndex = 0
+        }
+    }
+    
+    private func showNextMagicalModificationPrompt() {
+        guard !magicalModificationPrompts.isEmpty else { return }
+        prompt = magicalModificationPrompts[currentIndex]
+        currentIndex += 1
+
+        if currentIndex >= magicalModificationPrompts.count {
+            // Reshuffle for a fresh random run after showing all 30
+            magicalModificationPrompts.shuffle()
+            currentIndex = 0
+        }
+    }
+    
+    private func showNextModifyObjectPrompt() {
+        guard !modifyObjectPrompts.isEmpty else { return }
+        prompt = modifyObjectPrompts[currentIndex]
+        currentIndex += 1
+
+        if currentIndex >= modifyObjectPrompts.count {
+            // Reshuffle for a fresh random run after showing all 30
+            modifyObjectPrompts.shuffle()
+            currentIndex = 0
+        }
+    }
+    
+    private func showNextAddObjectPrompt() {
+        guard !addObjectPrompts.isEmpty else { return }
+        prompt = addObjectPrompts[currentIndex]
+        currentIndex += 1
+
+        if currentIndex >= addObjectPrompts.count {
+            // Reshuffle for a fresh random run after showing all 30
+            addObjectPrompts.shuffle()
+            currentIndex = 0
+        }
+    }
+    
+    private func showNextReplaceObjectPrompt() {
+        guard !replaceObjectPrompts.isEmpty else { return }
+        prompt = replaceObjectPrompts[currentIndex]
+        currentIndex += 1
+
+        if currentIndex >= replaceObjectPrompts.count {
+            // Reshuffle for a fresh random run after showing all 30
+            replaceObjectPrompts.shuffle()
+            currentIndex = 0
+        }
+    }
+    
 }

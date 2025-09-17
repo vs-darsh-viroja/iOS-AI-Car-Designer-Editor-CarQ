@@ -9,9 +9,11 @@ import Foundation
 import SwiftUI
 
 struct CreateView: View {
+    
     @StateObject private var viewModel = GenerationViewModel()
+    @Binding var prompt: String
     var onBack: () -> Void
-    @State var prompt: String = ""
+    var onClose: () -> Void
     @FocusState private var searchFocused: Bool
     @State var selectedColor: String = ""
     @State var customColorHex: String? = nil // ADD THIS STATE
@@ -43,7 +45,7 @@ struct CreateView: View {
                     
                     VStack(spacing: ScaleUtility.scaledSpacing(20)) {
                         
-                        PromptView(prompt: $prompt, isInputFocused: $searchFocused)
+                        PromptView(screen: "Create", prompt: $prompt, isInputFocused: $searchFocused)
                         
                         ColorListView(selectedColor: $selectedColor, customColorHex: $customColorHex) // PASS THE BINDING
                         
@@ -120,8 +122,10 @@ struct CreateView: View {
                     }
                 }, onClose: {
                     onBack()
+                    onClose()
                 }
             )
+            .background(Color.secondaryApp.edgesIgnoringSafeArea(.all))
         }
         .alert(item: $activeAlert) { alertType in
             switch alertType {

@@ -18,19 +18,11 @@ struct UploadImageSheetView: View {
      
             ZStack {
                 
-                EllipticalGradient(
-                    stops: [
-                        Gradient.Stop(color: .white.opacity(0.4), location: 0.00),
-                        Gradient.Stop(color: Color(red: 0.61, green: 0.61, blue: 0.61).opacity(0.5), location: 0.78),
-                    ],
-                    center: UnitPoint(x: 0.18, y: 0.04)
-                    
-                )
-                .ignoresSafeArea(.all)
-                
-                Color.secondaryApp.opacity(0.9).ignoresSafeArea(.all)
-                
-   
+                Image(.sheetBg)
+                    .resizable()
+                    .frame(maxWidth: .infinity,maxHeight: .infinity)
+                    .ignoresSafeArea(.all)
+               
                 VStack(spacing: ScaleUtility.scaledSpacing(22)) {
                     
                     Text("Upload an Image")

@@ -203,8 +203,8 @@ struct ReplaceObjectView: View {
                 },
                 onClose: { onBack() }
             )
-
-            }
+            .background(Color.secondaryApp.edgesIgnoringSafeArea(.all))
+        }
         .sheet(isPresented: $showUploadSheet) {
             UploadImageSheetView(showSheet: $showUploadSheet,
                                  onCameraTap: {
@@ -232,8 +232,8 @@ struct ReplaceObjectView: View {
                 }
             })
             .presentationDetents([.height( isIPad ? 410 : 210)])
-            .presentationCornerRadius(25)
-            .presentationDragIndicator(.visible)
+            .presentationCornerRadius(20)
+           
         }
         .fullScreenCover(isPresented: $showCameraPicker) {
             ImagePicker(sourceType: .camera) { image in
@@ -314,7 +314,7 @@ struct ReplaceObjectView: View {
             }
             
             
-            PromptView(prompt: $prompt, isInputFocused: $searchFocused)
+            PromptView(screen: "ReplaceObject", prompt: $prompt, isInputFocused: $searchFocused)
         }
     }
     

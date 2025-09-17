@@ -13,15 +13,28 @@ struct ContentView: View {
     @EnvironmentObject var userDefault: UserSettings
     @EnvironmentObject var remoteConfigManager: RemoteConfigManager
     @EnvironmentObject var timerManager: TimerManager
+    @State var isCollectGift: Bool = false
     
     var body: some View {
         ZStack {
             if userDefault.hasFinishedOnboarding {
                 MainView()
             }
+            else if userDefault.hasShownGiftPaywall  {
+                GiftPaywallView(isCollectGift: $isCollectGift) {
+                    userDefault.hasFinishedOnboarding = true
+                } giftPurchaseComplete: {
+                    userDefault.hasFinishedOnboarding = true
+                }
+            }
             else {
                 PaywallView(closePayAll: {
-                    userDefault.hasFinishedOnboarding = true
+                    if purchaseManager.hasPro || !remoteConfigManager.giftAfterOnBoarding {
+                        userDefault.hasFinishedOnboarding = true
+                    }
+                    else {
+                        userDefault.hasShownGiftPaywall = true
+                    }
                 }, purchaseCompletSuccessfullyAction: {
                     userDefault.hasFinishedOnboarding = true 
                 })

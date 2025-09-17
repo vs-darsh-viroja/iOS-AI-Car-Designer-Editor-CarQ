@@ -11,6 +11,9 @@ import SwiftUI
 struct SettingsView: View {
     @Environment(\.openURL) var openURL
     @EnvironmentObject var  userSettings: UserSettings
+    @EnvironmentObject var purchaseManager: PurchaseManager
+    @EnvironmentObject var timerManager: TimerManager
+    @EnvironmentObject var remoteConfigManager: RemoteConfigManager
     
     let notificationfeedback = UINotificationFeedbackGenerator()
     let impactfeedback = UIImpactFeedbackGenerator(style: .medium)
@@ -27,7 +30,16 @@ struct SettingsView: View {
                     
                 VStack(spacing: 0) {
                     
-                    TryProContainerView()
+                    VStack(spacing: ScaleUtility.scaledSpacing(15)) {
+                        if remoteConfigManager.giftAfterOnBoarding {
+                            if !timerManager.isExpired && !purchaseManager.hasPro && !remoteConfigManager.showLifeTimeBannerAtHome {
+                                LifeTimeGiftOfferBannerView()
+                                
+                            }
+                        }
+                        
+                        TryProContainerView()
+                    }
                     
                     ScrollView(showsIndicators: false) {
                         
@@ -115,7 +127,7 @@ struct SettingsView: View {
                             .background {
                                 Image(.settingsBg2)
                                     .resizable()
-                                    .frame(height: ScaleUtility.scaledValue(156))
+                                    .frame(height: isIPad ? 216 * ipadHeightRatio : ScaleUtility.scaledValue(156))
                                     .frame(maxWidth: .infinity)
                                 
                             }
@@ -181,10 +193,11 @@ struct SettingsView: View {
                             .background {
                                 Image(.settingsBg3)
                                     .resizable()
-                                    .frame(height: ScaleUtility.scaledValue(208))
+                                    .frame(height: isIPad ? ScaleUtility.scaledValue(228) : ScaleUtility.scaledValue(208))
                                     .frame(maxWidth: .infinity)
                                 
                             }
+                            .offset(y: isIPad ? ScaleUtility.scaledSpacing(5) : 0)
                         }
                     }
                     

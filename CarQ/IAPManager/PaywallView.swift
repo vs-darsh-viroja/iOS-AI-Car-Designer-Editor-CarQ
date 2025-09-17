@@ -117,6 +117,7 @@ struct PaywallView: View {
             Spacer()
         }
         .background(Color.secondaryApp.edgesIgnoringSafeArea(.all))
+        .ignoresSafeArea(.keyboard)
         .onAppear {
    
             self.selectPlan(of: remoteConfigManager.defaultSubscriptionPlan)

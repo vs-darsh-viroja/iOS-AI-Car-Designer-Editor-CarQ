@@ -190,6 +190,7 @@ struct MagicalModificationView: View {
                         onBack()
                     }
                 )
+                .background(Color.secondaryApp.edgesIgnoringSafeArea(.all))
             }
         .sheet(isPresented: $showUploadSheet) {
             UploadImageSheetView(showSheet: $showUploadSheet,
@@ -215,8 +216,8 @@ struct MagicalModificationView: View {
                 }
             })
             .presentationDetents([.height( isIPad ? 410 : 210)])
-            .presentationCornerRadius(25)
-            .presentationDragIndicator(.visible)
+            .presentationCornerRadius(20)
+          
         }
         .fullScreenCover(isPresented: $showCameraPicker) {
             ImagePicker(sourceType: .camera) { image in
@@ -352,7 +353,7 @@ struct MagicalModificationView: View {
                 }
             }
             
-            PromptView(prompt: $prompt, isInputFocused: $searchFocused)
+            PromptView(screen: "MagicalModification", prompt: $prompt, isInputFocused: $searchFocused)
         }
     }
     

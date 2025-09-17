@@ -17,6 +17,7 @@ enum TabSelection: Hashable {
 
 
 struct MainView: View {
+    @State var prompt: String = ""
     @State var isCreateScreen: Bool = false
     @State var selectedTab: TabSelection = .home
     let impactFeedback = UIImpactFeedbackGenerator(style: .light)
@@ -271,8 +272,11 @@ struct MainView: View {
               
             }
             .navigationDestination(isPresented: $isCreateScreen) {
-                CreateView(onBack: {
+                CreateView(prompt: $prompt,onBack: {
                   isCreateScreen = false
+                },onClose: {
+                    
+                    
                 })
                 .background(Color.secondaryApp.ignoresSafeArea(.all))
             }

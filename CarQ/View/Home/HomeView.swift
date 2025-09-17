@@ -10,6 +10,10 @@ import SwiftUI
 
 struct HomeView: View {
     @Binding var isCreateScreen: Bool
+    @EnvironmentObject var purchaseManager: PurchaseManager
+    @EnvironmentObject var timerManager: TimerManager
+    @EnvironmentObject var remoteConfigManager: RemoteConfigManager
+    
     var body: some View {
         VStack(spacing: ScaleUtility.scaledSpacing(0)) {
             
@@ -19,7 +23,17 @@ struct HomeView: View {
             ScrollView(showsIndicators: false) {
                 
                 Spacer()
-                    .frame(height: ScaleUtility.scaledValue(20))
+                    .frame(height: ScaleUtility.scaledValue(25))
+                
+                if remoteConfigManager.giftAfterOnBoarding {
+                    if !timerManager.isExpired && !purchaseManager.hasPro && remoteConfigManager.showLifeTimeBannerAtHome {
+                        LifeTimeGiftOfferBannerView()
+                        
+                        Spacer()
+                            .frame(height: isIPad ? ScaleUtility.scaledValue(25) : ScaleUtility.scaledValue(15))
+                        
+                    }
+                }
       
                 Button(action: {
                     isCreateScreen = true
