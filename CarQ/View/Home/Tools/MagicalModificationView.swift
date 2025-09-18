@@ -286,7 +286,12 @@ struct MagicalModificationView: View {
                 
                 HStack(spacing: isIPad ? ScaleUtility.scaledSpacing(16) : ScaleUtility.scaledSpacing(6)) {
                     Button {
-                        selectedType = "Resize"
+                        if selectedType == "Resize" {
+                            selectedType = ""
+                        } else {
+                            selectedType = "Resize"
+                        }
+                      
                     } label: {
                         Image(.selectionBg1)
                             .resizable()
@@ -308,7 +313,12 @@ struct MagicalModificationView: View {
                     }
                     
                     Button {
-                        selectedType = "Reshape"
+                        if selectedType == "Reshape" {
+                            selectedType = ""
+                        } else {
+                            selectedType = "Reshape"
+                        }
+                      
                     } label: {
                         Image(.selectionBg1)
                             .resizable()
@@ -330,7 +340,12 @@ struct MagicalModificationView: View {
                     }
                     
                     Button {
-                        selectedType = "Redesign"
+                        if selectedType == "Redesign" {
+                            selectedType = ""
+                        } else {
+                            selectedType = "Redesign"
+                        }
+
                     } label: {
                         Image(.selectionBg1)
                             .resizable()

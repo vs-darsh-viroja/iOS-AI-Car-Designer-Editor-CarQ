@@ -17,16 +17,10 @@ struct SpecialEffectView: View {
     }
     
     private let effectTypes: [EffectType] = [
-        .init(name: "Pearlescent", imageName: "dummyCarImage"),
-        .init(name: "Chrome", imageName: "dummyCarImage"),
-        .init(name: "Two-Tone", imageName: "dummyCarImage"),
-        .init(name: "Candy", imageName: "dummyCarImage"),
-        .init(name: "Metallic", imageName: "dummyCarImage"),
-        .init(name: "Sparkle", imageName: "dummyCarImage"),
-        .init(name: "Stripes", imageName: "dummyCarImage"),
-        .init(name: "Gradient", imageName: "dummyCarImage"),
-        .init(name: "Iridescent", imageName: "dummyCarImage"),
-        .init(name: "Holographic", imageName: "dummyCarImage")
+        .init(name: "Dual-tone", imageName: "Dual-tone"),
+        .init(name: "Gradient", imageName: "Gradient"),
+        .init(name: "Neon Glow", imageName: "NeonGlow"),
+        .init(name: "Racing Stripes", imageName: "RacingStripes"),
     ]
     
     var body: some View {
@@ -45,7 +39,12 @@ struct SpecialEffectView: View {
                         let isSelected = selectedEffect == effectType.name
                         
                         Button {
-                            selectedEffect = effectType.name
+                            if selectedEffect == effectType.name {
+                                selectedEffect = ""
+                            } else {
+                                selectedEffect = effectType.name
+                            }
+                       
                         } label: {
                             VStack {
                                 ZStack {
@@ -56,6 +55,7 @@ struct SpecialEffectView: View {
                                     Image(effectType.imageName)
                                         .resizable()
                                         .frame(width: ScaleUtility.scaledValue(90), height: ScaleUtility.scaledValue(90))
+                                        .clipShape(Circle())
                                 }
                                 
                                 Text(effectType.name)

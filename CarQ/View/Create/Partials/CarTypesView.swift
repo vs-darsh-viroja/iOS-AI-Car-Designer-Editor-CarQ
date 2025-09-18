@@ -17,16 +17,17 @@ struct CarTypesView: View {
     }
     
     private let carTypes: [CarType] = [
-        .init(name: "Standard", imageName: "dummyCarImage"),
-        .init(name: "Minivan", imageName: "dummyCarImage"),
-        .init(name: "Bike", imageName: "dummyCarImage"),
-        .init(name: "Hatchback", imageName: "dummyCarImage"),
-        .init(name: "Sports Car", imageName: "dummyCarImage"),
-        .init(name: "Convertible", imageName: "dummyCarImage"),
-        .init(name: "Pickup", imageName: "dummyCarImage"),
-        .init(name: "Coupe", imageName: "dummyCarImage"),
-        .init(name: "Wagon", imageName: "dummyCarImage"),
-        .init(name: "Crossover", imageName: "dummyCarImage")
+        .init(name: "Classic", imageName: "Classic"),
+        .init(name: "Coupe", imageName: "Coupe"),
+        .init(name: "Luxury", imageName: "Luxury"),
+        .init(name: "Minivan", imageName: "Minivan"),
+        .init(name: "Motorcycle", imageName: "Motorcycle"),
+        .init(name: "Pickup Truck", imageName: "PickupTruck"),
+        .init(name: "Sedan", imageName: "Sedan"),
+        .init(name: "Sport", imageName: "Sports"),
+        .init(name: "Sports Bike", imageName: "SportsBike"),
+        .init(name: "SUV", imageName: "SUV"),
+        .init(name: "Trailer", imageName: "Trailer")
     ]
     
     var body: some View {
@@ -45,9 +46,13 @@ struct CarTypesView: View {
                         let isSelected = selectedCarType == carType.name
                         
                         Button {
-                            selectedCarType = carType.name
+                            if selectedCarType == carType.name {
+                                selectedCarType = ""
+                            } else {
+                                selectedCarType = carType.name
+                            }
                         } label: {
-                            VStack {
+                            VStack(spacing: ScaleUtility.scaledSpacing(5)) {
                                 ZStack {
                                     Image(isSelected ? .carStroke2 : .carStroke1)
                                         .resizable()
@@ -56,6 +61,7 @@ struct CarTypesView: View {
                                     Image(carType.imageName)
                                         .resizable()
                                         .frame(width: ScaleUtility.scaledValue(90), height: ScaleUtility.scaledValue(90))
+                                        .clipShape(Circle())
                                 }
                                 
                                 Text(carType.name)
@@ -63,7 +69,9 @@ struct CarTypesView: View {
                                     .multilineTextAlignment(.center)
                                     .foregroundColor(Color.primaryApp)
                                     .frame(width: isIPad ? ScaleUtility.scaledValue(114) : ScaleUtility.scaledValue(104))
+                                    .frame(height:ScaleUtility.scaledValue(50),alignment: .top)
                             }
+                        
                         }
                         .buttonStyle(.plain)
                     }

@@ -51,6 +51,25 @@ extension View
         screenSize.height < 812
     }
     
-
+    func popoverView<PopoverContent: View>(
+        isPresented: Binding<Bool>,
+        popOverSize: CGSize,
+        popoverOffsetX: CGFloat,
+        popoverIpadOffsetX: CGFloat,
+        popoverOffsetY: CGFloat,
+        popoverIpadOffsetY: CGFloat,
+        popoverContent: @escaping () -> PopoverContent) -> some View {
+        self.modifier(
+            PopoverViewModifier(
+                isPresented: isPresented,
+                popoverSize: popOverSize,
+                popoverContent: popoverContent,
+                popoverOffsetX: popoverOffsetX,
+                popoverIpadOffsetX: popoverIpadOffsetX,
+                popoverOffsetY: popoverOffsetY,
+                popoverIpadOffsetY: popoverIpadOffsetY
+            )
+        )
+    }
  
 }

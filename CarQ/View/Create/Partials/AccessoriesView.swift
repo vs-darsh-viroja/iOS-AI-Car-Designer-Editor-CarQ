@@ -17,17 +17,13 @@ struct AccessoriesView: View {
     }
     
     private let accessories: [Accessory] = [
-        .init(name: "Spoiler", imageName: "dummyCarImage"),
-        .init(name: "Hood Scoop", imageName: "dummyCarImage"),
-        .init(name: "Side Skirts", imageName: "dummyCarImage"),
-        .init(name: "Roof Rack", imageName: "dummyCarImage"),
-        .init(name: "Bull Bar", imageName: "dummyCarImage"),
-        .init(name: "Mudflaps", imageName: "dummyCarImage"),
-        .init(name: "Sunroof", imageName: "dummyCarImage"),
-        .init(name: "LED Strips", imageName: "dummyCarImage"),
-        .init(name: "Chrome Trim", imageName: "dummyCarImage"),
-        .init(name: "Diffuser", imageName: "dummyCarImage"),
-
+        .init(name: "Alloy Wheels", imageName: "AlloyWheels"),
+        .init(name: "Custom Exhaust", imageName: "CustomExhaust"),
+        .init(name: "Decals", imageName: "Decals"),
+        .init(name: "Neon Lights", imageName: "NeonLights"),
+        .init(name: "Roof Rack", imageName: "RoofRack"),
+        .init(name: "Side Skirts", imageName: "SideSkirts"),
+        .init(name: "Spoiler", imageName: "Spoiler"),
     ]
     
     var body: some View {
@@ -46,9 +42,13 @@ struct AccessoriesView: View {
                         let isSelected = selectedAccessory == accessory.name
                         
                         Button {
-                            selectedAccessory = accessory.name
+                            if selectedAccessory == accessory.name {
+                                selectedAccessory = ""
+                            } else {
+                                selectedAccessory = accessory.name
+                            }
                         } label: {
-                            VStack {
+                            VStack(spacing: ScaleUtility.scaledSpacing(5)) {
                                 ZStack {
                                     Image(isSelected ? .carStroke2 : .carStroke1)
                                         .resizable()
@@ -57,6 +57,7 @@ struct AccessoriesView: View {
                                     Image(accessory.imageName)
                                         .resizable()
                                         .frame(width: ScaleUtility.scaledValue(90), height: ScaleUtility.scaledValue(90))
+                                        .clipShape(Circle())
                                 }
                                 
                                 Text(accessory.name)
@@ -64,7 +65,9 @@ struct AccessoriesView: View {
                                     .multilineTextAlignment(.center)
                                     .foregroundColor(Color.primaryApp)
                                     .frame(width: isIPad ? ScaleUtility.scaledValue(114) : ScaleUtility.scaledValue(104))
+                                    .frame(height:ScaleUtility.scaledValue(50),alignment: .top)
                             }
+                            
                         }
                         .buttonStyle(.plain)
                     }

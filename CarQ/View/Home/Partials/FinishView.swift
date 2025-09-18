@@ -18,16 +18,11 @@ struct FinishView: View {
     }
     
     private let finishTypes: [FinishType] = [
-        .init(name: "High-Gloss", imageName: "dummyCarImage"),
-        .init(name: "Semi-Gloss", imageName: "dummyCarImage"),
-        .init(name: "Satin", imageName: "dummyCarImage"),
-        .init(name: "Matte", imageName: "dummyCarImage"),
-        .init(name: "Flat", imageName: "dummyCarImage"),
-        .init(name: "Textured", imageName: "dummyCarImage"),
-        .init(name: "Brushed", imageName: "dummyCarImage"),
-        .init(name: "Hammered", imageName: "dummyCarImage"),
-        .init(name: "Crackle", imageName: "dummyCarImage"),
-        .init(name: "Distressed", imageName: "dummyCarImage")
+        .init(name: "Chrome", imageName: "Chrome"),
+        .init(name: "Glossy", imageName: "Glossy"),
+        .init(name: "Matte", imageName: "Matte"),
+        .init(name: "Metallic", imageName: "Metallic"),
+        .init(name: "Satin", imageName: "Satin"),
     ]
     
     var body: some View {
@@ -46,7 +41,12 @@ struct FinishView: View {
                         let isSelected = selectedFinish == finishType.name
                         
                         Button {
-                            selectedFinish = finishType.name
+                            if selectedFinish == finishType.name {
+                                selectedFinish = ""
+                            } else {
+                                selectedFinish = finishType.name
+                            }
+                         
                         } label: {
                             VStack {
                                 ZStack {
@@ -57,6 +57,7 @@ struct FinishView: View {
                                     Image(finishType.imageName)
                                         .resizable()
                                         .frame(width: ScaleUtility.scaledValue(90), height: ScaleUtility.scaledValue(90))
+                                        .clipShape(Circle())
                                 }
                                 
                                 Text(finishType.name)

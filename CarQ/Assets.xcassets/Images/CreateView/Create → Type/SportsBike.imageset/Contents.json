@@ -1,0 +1,12 @@
+{
+  "images" : [
+    {
+      "filename" : "Sports Bike.jpg",
+      "idiom" : "universal"
+    }
+  ],
+  "info" : {
+    "author" : "xcode",
+    "version" : 1
+  }
+}

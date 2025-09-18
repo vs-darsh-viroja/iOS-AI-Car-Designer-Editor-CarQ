@@ -1,0 +1,12 @@
+{
+  "images" : [
+    {
+      "filename" : "Low Rider.jpg",
+      "idiom" : "universal"
+    }
+  ],
+  "info" : {
+    "author" : "xcode",
+    "version" : 1
+  }
+}

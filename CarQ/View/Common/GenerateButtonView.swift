@@ -27,11 +27,12 @@ struct GenerateButtonView: View {
                         startPoint: .bottom,
                         endPoint: .top
                     )
+
                 )
                 .frame(maxWidth: .infinity)
                 .frame(height: isIPad ? ScaleUtility.scaledValue(157) : ScaleUtility.scaledValue(117))
                 .allowsHitTesting(true)
-            
+             
             
                 Image(.bgBlur)
                     .resizable()

@@ -17,18 +17,16 @@ struct DesignStylesView: View {
     }
     
     private let designStyles: [DesignStyle] = [
-        .init(name: "Muscle", imageName: "dummyCarImage"),
-        .init(name: "Japanese", imageName: "dummyCarImage"),
-        .init(name: "Modern", imageName: "dummyCarImage"),
-        .init(name: "Luxurious", imageName: "dummyCarImage"),
-        .init(name: "Classic", imageName: "dummyCarImage"),
-        .init(name: "Sports", imageName: "dummyCarImage"),
-        .init(name: "Retro", imageName: "dummyCarImage"),
-        .init(name: "Futuristic", imageName: "dummyCarImage"),
-        .init(name: "Off-Road", imageName: "dummyCarImage"),
-        .init(name: "Racing", imageName: "dummyCarImage"),
-        .init(name: "Minimalist", imageName: "dummyCarImage"),
-        .init(name: "Aggressive", imageName: "dummyCarImage")
+        .init(name: "CyberPunk", imageName: "Cyberpunk"),
+        .init(name: "Futuristic", imageName: "Futuristic"),
+        .init(name: "Japanese Graphical", imageName: "JapaneseGraphical"),
+        .init(name: "Low Rider", imageName: "LowRider"),
+        .init(name: "Modern Luxurious", imageName: "ModernLuxurious"),
+        .init(name: "Muscle", imageName: "Muscle"),
+        .init(name: "Off Road", imageName: "OffRoad"),
+        .init(name: "Retro Classic", imageName: "RetroClassic"),
+        .init(name: "Stealth", imageName: "Stealth"),
+        .init(name: "Street Racer", imageName: "StreetRacer")
     ]
     
     var body: some View {
@@ -47,17 +45,23 @@ struct DesignStylesView: View {
                         let isSelected = selectedDesignStyle == designStyle.name
                         
                         Button {
-                            selectedDesignStyle = designStyle.name
+                            if selectedDesignStyle == designStyle.name {
+                                selectedDesignStyle = ""
+                            } else {
+                                selectedDesignStyle = designStyle.name
+                            }
                         } label: {
-                            VStack {
+                            VStack(spacing: ScaleUtility.scaledSpacing(5)) {
                                 ZStack {
                                     Image(isSelected ? .carStroke2 : .carStroke1)
                                         .resizable()
                                         .frame(width: ScaleUtility.scaledValue(100), height: ScaleUtility.scaledValue(100))
                                     
+                                    
                                     Image(designStyle.imageName)
                                         .resizable()
                                         .frame(width: ScaleUtility.scaledValue(90), height: ScaleUtility.scaledValue(90))
+                                        .clipShape(Circle())
                                 }
                                 
                                 Text(designStyle.name)
@@ -65,7 +69,9 @@ struct DesignStylesView: View {
                                     .multilineTextAlignment(.center)
                                     .foregroundColor(Color.primaryApp)
                                     .frame(width: isIPad ? ScaleUtility.scaledValue(114) : ScaleUtility.scaledValue(104))
+                                    .frame(height:ScaleUtility.scaledValue(50),alignment: .top)
                             }
+                        
                         }
                         .buttonStyle(.plain)
                     }

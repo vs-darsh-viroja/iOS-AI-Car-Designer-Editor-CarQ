@@ -71,12 +71,24 @@ struct ColorListView: View {
 
                         Button {
                             if isPickerPlate {
-                                // Open ONLY the iOS system color picker
-                                uiPickerColor = UIColor(pickerColor)
-                                showSystemPicker = true
+                                // Toggle custom color selection
+                                if selectedColor == "custom" {
+                                    // Deselect custom color
+                                    selectedColor = ""
+                                    customColorHex = nil
+                                } else {
+                                    // Open color picker to select new custom color
+                                    uiPickerColor = UIColor(pickerColor)
+                                    showSystemPicker = true
+                                }
                             } else {
-                                selectedColor = item.colorname
-                                customColorHex = nil // Clear custom color when selecting preset
+                                if selectedColor == item.colorname {
+                                    selectedColor = ""
+                                } else {
+                                    selectedColor = item.colorname
+                                    customColorHex = nil
+                                }
+             
                             }
                         } label: {
                             ZStack {
