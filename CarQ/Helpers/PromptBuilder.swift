@@ -274,19 +274,19 @@ public enum PromptBuilder {
     //MARK: - Remove Object
     
     
-    public static func buildRemoveObjectPrompt(objectHints: [String]? = nil) -> String {
-        var parts: [String] = []
-        if let hints = objectHints, !hints.isEmpty {
-            parts.append("Remove the highlighted parts: \(hints.joined(separator: ", ")).")
-        } else {
-            parts.append("Remove the highlighted parts from the car (e.g., lights, sunroof, badges).")
-        }
-        parts.append("Use inpainting to realistically fill the removed regions with surrounding car surfaces.")
-        parts.append("Preserve original lighting, reflections, body lines, perspective, and environment.")
-        parts.append("Only modify masked areas; do not alter glass, tires, wheels, or unmasked panels.")
-        parts.append("High-quality, artifact-free result with seamless blending.")
-        return parts.joined(separator: " ")
-    }
+//    public static func buildRemoveObjectPrompt(objectHints: [String]? = nil) -> String {
+//        var parts: [String] = []
+//        if let hints = objectHints, !hints.isEmpty {
+//            parts.append("Remove the highlighted parts from the car: \(hints.joined(separator: ", ")).")
+//        } else {
+//            parts.append("Remove the highlighted parts from the car (e.g., lights, sunroof, badges).")
+//        }
+////        parts.append("Inpaint the empty regions with realistic car body surfaces that match the surrounding paint, reflections, and panel lines. ")
+////        parts.append("Preserve the original perspective, lighting, shadows, and environment.")
+////        parts.append("Ensure seamless blending with adjacent surfaces, without artifacts or distortions.")
+////        parts.append(" Modify only the masked headlight areas; leave glass, tires, wheels, and all other unmasked parts untouched. Final result should look like a natural, factory-original car design with no trace of removed headlights.")
+//        return parts.joined(separator: " ")
+//    }
     
     //MARK: - Modify Object
     

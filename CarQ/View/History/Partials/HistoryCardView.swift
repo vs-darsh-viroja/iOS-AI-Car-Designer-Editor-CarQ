@@ -29,6 +29,9 @@ struct HistoryCardView: View {
         return nil
     }
     
+    let notificationFeedback = UINotificationFeedbackGenerator()
+
+    
     var body: some View {
         ZStack {
             Group {
@@ -76,6 +79,7 @@ struct HistoryCardView: View {
                 HStack {
                     Spacer()
                     Button (action :{
+                        notificationFeedback.notificationOccurred(.warning)
                         onDelete()
                     }) {
                         Image(.deleteIcon2)

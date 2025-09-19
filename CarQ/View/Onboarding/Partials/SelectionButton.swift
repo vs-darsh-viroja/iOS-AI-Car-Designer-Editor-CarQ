@@ -12,9 +12,13 @@ struct SelectionButton: View {
     let title: String
     let isSelected: Bool
     let action: () -> Void
+    let selectionFeedback = UISelectionFeedbackGenerator()
     
     var body: some View {
-        Button(action: action) {
+        Button(action: {
+            selectionFeedback.selectionChanged()
+            action()
+        }) {
             Image(.selectionBg)
                 .resizable()
                 .scaledToFit()

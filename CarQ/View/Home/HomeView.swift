@@ -13,6 +13,7 @@ struct HomeView: View {
     @EnvironmentObject var purchaseManager: PurchaseManager
     @EnvironmentObject var timerManager: TimerManager
     @EnvironmentObject var remoteConfigManager: RemoteConfigManager
+    let impactFeedback = UIImpactFeedbackGenerator(style: .medium)
     
     var body: some View {
         VStack(spacing: ScaleUtility.scaledSpacing(0)) {
@@ -36,6 +37,7 @@ struct HomeView: View {
                 }
       
                 Button(action: {
+                    impactFeedback.impactOccurred()
                     isCreateScreen = true
                 }) {
                     Image(.createIcon)

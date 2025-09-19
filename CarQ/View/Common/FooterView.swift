@@ -16,11 +16,17 @@ struct FooterView: View {
     @Binding var generatedImage: UIImage?
     @Binding var buttonDisabled: Bool
     
+    let impactFeedback = UIImpactFeedbackGenerator(style: .light)
+    let selectionFeedback = UISelectionFeedbackGenerator()
+    let notificationFeedback = UINotificationFeedbackGenerator()
+    
     var body: some View {
         
         VStack(spacing: ScaleUtility.scaledSpacing(10)) {
             
             Button(action: {
+                AnalyticsManager.shared.log(.saveToGallery)
+                notificationFeedback.notificationOccurred(.success)
                 onSave()
             }) {
                 HStack(spacing: ScaleUtility.scaledSpacing(5)) {
@@ -53,6 +59,8 @@ struct FooterView: View {
             HStack(spacing: ScaleUtility.scaledSpacing(15)) {
                 
                 Button {
+                    
+                    notificationFeedback.notificationOccurred(.warning)
                     onDelete()
                 } label: {
                     HStack {
@@ -119,6 +127,8 @@ struct FooterView: View {
                 else {
                     
                     Button {
+                        AnalyticsManager.shared.log(.share)
+                        notificationFeedback.notificationOccurred(.success)
                         onShare()
                     } label: {
                         

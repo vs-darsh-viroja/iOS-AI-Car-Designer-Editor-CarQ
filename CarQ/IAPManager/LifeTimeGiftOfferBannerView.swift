@@ -18,7 +18,7 @@ struct LifeTimeGiftOfferBannerView: View {
     @Environment(\.colorScheme) var colorScheme
     
     let notificationfeedback = UINotificationFeedbackGenerator()
-    let impactfeedback = UIImpactFeedbackGenerator(style: .medium)
+    let impactFeedback = UIImpactFeedbackGenerator(style: .light)
     let selectionfeedback = UISelectionFeedbackGenerator()
     
     var body: some View {
@@ -87,7 +87,7 @@ struct LifeTimeGiftOfferBannerView: View {
                     
                     Button {
                         print("clicked")
-                        impactfeedback.impactOccurred()
+                        impactFeedback.impactOccurred()
                         Task {
                             do {
                                 try await purchaseManager.purchase(product)
@@ -151,7 +151,9 @@ struct LifeTimeGiftOfferBannerView: View {
                 Alert(
                     title: Text("Error"),
                     message: Text(purchaseManager.alertMessage),
-                    dismissButton: .default(Text("OK"))
+                    dismissButton: .default(Text("OK")) {
+                        impactFeedback.impactOccurred()
+                    }
                 )
             }
             .frame(maxWidth:.infinity)

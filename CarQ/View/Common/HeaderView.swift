@@ -13,11 +13,13 @@ struct HeaderView: View {
     var onBack: () -> Void
     var onClose: () -> Void
     var isCross: Bool
+    let impactFeedback = UIImpactFeedbackGenerator(style: .light)
     
     var body: some View {
         HStack {
             HStack(spacing: ScaleUtility.scaledSpacing(15)) {
                 Button {
+                    impactFeedback.impactOccurred()
                     onBack()
                 } label: {
                     Image(.backIcon)
@@ -34,6 +36,7 @@ struct HeaderView: View {
             
            
                 Button {
+                    impactFeedback.impactOccurred()
                     onClose()
                 } label: {
                     Image(.crossIcon)

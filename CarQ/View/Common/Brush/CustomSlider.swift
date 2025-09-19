@@ -20,7 +20,8 @@ struct ReusableCustomSlider: View {
     let trackHeight: CGFloat = 8
     let thumbSize: CGFloat = 32
     let innerDotSize: CGFloat = 8
-
+    let selectionFeedback = UISelectionFeedbackGenerator()
+    
     var body: some View {
         let progress = CGFloat((value - range.lowerBound) / (range.upperBound - range.lowerBound))
 
@@ -52,9 +53,11 @@ struct ReusableCustomSlider: View {
                 .gesture(
                     DragGesture()
                         .onChanged { gesture in
+                            selectionFeedback.selectionChanged()
                             let location = min(max(gesture.location.x, 0), sliderWidth)
                             let newValue = Double(location / sliderWidth) * (range.upperBound - range.lowerBound) + range.lowerBound
                             value = newValue
+                           
                         }
                 )
         }

@@ -17,10 +17,16 @@ enum TabSelection: Hashable {
 
 
 struct MainView: View {
+    @EnvironmentObject var purchaseManager: PurchaseManager
+    @EnvironmentObject var remoteConfigManager: RemoteConfigManager
+    @EnvironmentObject var appOpenAdManager: AppOpenAdManager
+    
     @State var prompt: String = ""
     @State var isCreateScreen: Bool = false
     @State var selectedTab: TabSelection = .home
     let impactFeedback = UIImpactFeedbackGenerator(style: .light)
+
+    @State var isShowAdd: Bool = false
     
     var body: some View {
         
@@ -71,6 +77,7 @@ struct MainView: View {
                             HStack(spacing: isIPad ? ScaleUtility.scaledSpacing(24) :  ScaleUtility.scaledSpacing(4)) {
                                 VStack(spacing: ScaleUtility.scaledSpacing(5)) {
                                     Button {
+                                        impactFeedback.impactOccurred()
                                         selectedTab = .home
                                     } label: {
                                         VStack(spacing: isIPad ? ScaleUtility.scaledSpacing(5) : ScaleUtility.scaledSpacing(1)) {
@@ -111,6 +118,7 @@ struct MainView: View {
                                 
                                 VStack(spacing: ScaleUtility.scaledSpacing(5)) {
                                     Button {
+                                        impactFeedback.impactOccurred()
                                         selectedTab = .explore
                                     } label: {
                                         VStack(spacing: isIPad ? ScaleUtility.scaledSpacing(5) : ScaleUtility.scaledSpacing(1)) {
@@ -159,6 +167,7 @@ struct MainView: View {
                             HStack(spacing: isIPad ?  ScaleUtility.scaledSpacing(24) : ScaleUtility.scaledSpacing(4)) {
                                 VStack(spacing: ScaleUtility.scaledSpacing(5)) {
                                     Button {
+                                        impactFeedback.impactOccurred()
                                         selectedTab = .history
                                     } label: {
                                         VStack(spacing: isIPad ? ScaleUtility.scaledSpacing(5) : ScaleUtility.scaledSpacing(1)) {
@@ -201,6 +210,7 @@ struct MainView: View {
                                 
                                 VStack(spacing: ScaleUtility.scaledSpacing(5)) {
                                     Button {
+                                        impactFeedback.impactOccurred()
                                         selectedTab = .settings
                                     } label: {
                                         VStack(spacing: isIPad ? ScaleUtility.scaledSpacing(5) : ScaleUtility.scaledSpacing(1)) {
@@ -253,6 +263,7 @@ struct MainView: View {
                         }
                         .overlay(alignment: .top) {
                             Button(action: {
+                                impactFeedback.impactOccurred()
                                 isCreateScreen = true
                             }) {
                                 Image(.steeringIcon)
@@ -281,6 +292,26 @@ struct MainView: View {
                 .background(Color.secondaryApp.ignoresSafeArea(.all))
             }
             .background(Color.secondaryApp.ignoresSafeArea(.all))
+            .onAppear {
+                if !purchaseManager.hasPro && remoteConfigManager.showAds {
+                    if appOpenAdManager.isAppload {
+                        if !isShowAdd {
+                            appOpenAdManager.showAdIfAvailable()
+                            isShowAdd = true
+                        }
+                    }
+                }
+            }
+            .onChange(of: appOpenAdManager.isAppload) { newValue in
+                if !purchaseManager.hasPro && remoteConfigManager.showAds {
+                    if newValue == true {
+                        if !isShowAdd {
+                            appOpenAdManager.showAdIfAvailable()
+                            isShowAdd = true
+                        }
+                    }
+                }
+            }
         }
     }
 }

@@ -24,6 +24,8 @@ struct FinishView: View {
         .init(name: "Metallic", imageName: "Metallic"),
         .init(name: "Satin", imageName: "Satin"),
     ]
+
+    let selectionFeedback = UISelectionFeedbackGenerator()
     
     var body: some View {
         VStack(spacing: ScaleUtility.scaledSpacing(13)) {
@@ -41,6 +43,7 @@ struct FinishView: View {
                         let isSelected = selectedFinish == finishType.name
                         
                         Button {
+                            selectionFeedback.selectionChanged()
                             if selectedFinish == finishType.name {
                                 selectedFinish = ""
                             } else {

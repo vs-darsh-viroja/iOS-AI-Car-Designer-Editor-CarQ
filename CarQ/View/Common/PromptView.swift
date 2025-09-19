@@ -21,7 +21,8 @@ struct PromptView: View {
     @State private var addObjectPrompts: [String] = AddObjectPrompts.all.shuffled()
     @State private var replaceObjectPrompts: [String] = ReplaceObjectPrompts.all.shuffled()
     @State private var currentIndex: Int = 0
-
+    let impactFeedback = UIImpactFeedbackGenerator(style: .light)
+    
     var body: some View {
        
             Image(.promptField)
@@ -54,6 +55,7 @@ struct PromptView: View {
                         HStack {
                             
                             Button {
+                                impactFeedback.impactOccurred()
                                 prompt = ""
                             } label: {
                                 Text("Clear")
@@ -65,7 +67,8 @@ struct PromptView: View {
                             Spacer()
                             
                             Button {
-                                
+                            AnalyticsManager.shared.log(.getIdea)
+                            impactFeedback.impactOccurred()
                             switch screen {
                                 case "Create":
                                     return  showNextCreatePrompt()
@@ -81,6 +84,8 @@ struct PromptView: View {
                                     return showNextCreatePrompt()
                                 
                                 }
+                                
+                             
                                 
                                 showNextCreatePrompt()
                             } label: {

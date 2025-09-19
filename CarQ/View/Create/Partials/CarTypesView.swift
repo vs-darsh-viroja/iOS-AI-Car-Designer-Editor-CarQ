@@ -29,6 +29,7 @@ struct CarTypesView: View {
         .init(name: "SUV", imageName: "SUV"),
         .init(name: "Trailer", imageName: "Trailer")
     ]
+    let selectionFeedback = UISelectionFeedbackGenerator()
     
     var body: some View {
         VStack(spacing: ScaleUtility.scaledSpacing(13)) {
@@ -46,6 +47,7 @@ struct CarTypesView: View {
                         let isSelected = selectedCarType == carType.name
                         
                         Button {
+                            selectionFeedback.selectionChanged()
                             if selectedCarType == carType.name {
                                 selectedCarType = ""
                             } else {

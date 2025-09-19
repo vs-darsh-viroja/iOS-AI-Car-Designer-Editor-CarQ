@@ -12,7 +12,9 @@ struct BrushControlsView: View {
     @Binding var currentTool: DrawingTool
     @Binding var brushSize: CGFloat
     let onReset: () -> Void
-    
+    let selectionFeedback = UISelectionFeedbackGenerator()
+    let impactFeedback = UIImpactFeedbackGenerator(style: .light)
+   
     var body: some View {
         VStack(spacing: ScaleUtility.scaledSpacing(25)) {
             // Tool buttons
@@ -20,13 +22,19 @@ struct BrushControlsView: View {
                 ToolButton(
                     title: "Brush",
                     isSelected: currentTool == .brush,
-                    action: { currentTool = .brush }
+                    action: {
+                        selectionFeedback.selectionChanged()
+                        currentTool = .brush
+                    }
                 )
                 
                 ToolButton(
                     title: "Eraser",
                     isSelected: currentTool == .eraser,
-                    action: { currentTool = .eraser }
+                    action: {
+                        selectionFeedback.selectionChanged()
+                        currentTool = .eraser
+                    }
                 )
                 
                 Spacer()
@@ -34,7 +42,10 @@ struct BrushControlsView: View {
                 ToolButton(
                     title: "Reset",
                     isSelected: false,
-                    action: onReset
+                    action: {
+                        impactFeedback.impactOccurred()
+                        onReset()
+                    }
                 )
             }
             

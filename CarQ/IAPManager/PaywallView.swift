@@ -124,7 +124,17 @@ struct PaywallView: View {
             
             paywallLoading()
         }
+        .alert(isPresented: $purchaseManager.showAlert) {
+            Alert(
+                title: Text(""),
+                message: Text(purchaseManager.alertMessage),
+                dismissButton: .default(Text("OK")) {
+                    impactfeedback.impactOccurred()
+                }
+            )
+        }
     }
+    
     
     func selectPlan(of type: Int) {
         switch type {

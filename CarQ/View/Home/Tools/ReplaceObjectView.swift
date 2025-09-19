@@ -11,6 +11,12 @@ import PhotosUI
 
 
 struct ReplaceObjectView: View {
+    
+    @StateObject private var ads = RewardedAdManager(adUnitID: "ca-app-pub-3940256099942544/5224354917")
+    @StateObject var userDefault = UserSettings()
+    @EnvironmentObject var purchaseManager: PurchaseManager
+    @EnvironmentObject var remoteConfigManager: RemoteConfigManager
+    
     var onBack: () -> Void
     @StateObject private var keyboard = KeyboardResponder()
     @State var prompt: String = ""
@@ -57,6 +63,10 @@ struct ReplaceObjectView: View {
     @StateObject private var viewModel = GenerationViewModel()
   
     @Namespace private var refImageNS
+    let impactFeedback = UIImpactFeedbackGenerator(style: .light)
+    
+    @State var isShowPayWall: Bool = false
+    @State var showPopUp: Bool = false
     
     var body: some View {
         ZStack(alignment: .bottom) {
@@ -119,7 +129,36 @@ struct ReplaceObjectView: View {
                 } else if prompt.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty {
                     activeAlert = .processingError(message: "Please enter a prompt to describe the desired changes")
                 } else {
-                    isProcessing = true
+                    withAnimation(.spring(response: 0.35, dampingFraction: 0.8)) {
+                        if !purchaseManager.hasPro && remoteConfigManager.showAds {
+                            
+                            if userDefault.freeImageGenerated < remoteConfigManager.freeConvertion {
+                                
+                                isProcessing = true
+                                userDefault.freeImageGenerated += 1
+                                
+                            }
+                            else if userDefault.freeImageGenerated == remoteConfigManager.freeConvertion && userDefault.rewardAdsImageGenerated >= remoteConfigManager.maximumRewardAd{
+                                isShowPayWall = true
+                            }
+                            else {
+                                showPopUp = true
+                            }
+                        }
+                        else if !purchaseManager.hasPro && remoteConfigManager.temporaryAdsClosed {
+                            if userDefault.rewardAdsImageGenerated >= remoteConfigManager.maximumRewardAd {
+                                isShowPayWall = true
+                            }
+                            else {
+                                
+                                userDefault.rewardAdsImageGenerated += 1
+                                isProcessing = true
+                            }
+                        }
+                        else {
+                            isProcessing = true
+                        }
+                    }
                 }
             })
             
@@ -149,6 +188,56 @@ struct ReplaceObjectView: View {
                    let ui = UIImage(data: data) {
                     referenceImage = ui
                     
+                }
+            }
+        }
+        .task {
+            if !purchaseManager.hasPro {
+                await ads.load()
+            }
+        }
+        .overlay {
+            if showPopUp {
+                ZStack {
+                    Color.secondaryApp.opacity(0.6).ignoresSafeArea(.all)
+                        .ignoresSafeArea(.all)
+                        .transition(.opacity)
+                        .onTapGesture {
+                            // tap outside to close (optional)
+                            withAnimation(.spring(response: 0.35, dampingFraction: 0.8)) {
+                                showPopUp = false
+                            }
+                        }
+                    
+                    AdsAlertView {
+                        isShowPayWall = true
+                        AnalyticsManager.shared.log(.getPremiumFromAlert)
+                        
+                    } watchAds: {
+                        AnalyticsManager.shared.log(.watchanAd)
+                        ads.showOrProceed(
+                            onReward: { _ in
+                                AnalyticsManager.shared.log(.createScreen)
+                                isProcessing = true
+                                userDefault.rewardAdsImageGenerated += 1 },
+                            proceedAnyway: {
+                                AnalyticsManager.shared.log(.createScreen)
+                                isProcessing = true
+                                userDefault.rewardAdsImageGenerated += 1
+                            }
+                        )
+                  
+                    } closeAction: {
+                        withAnimation(.spring(response: 0.35, dampingFraction: 0.8)) {
+                            showPopUp = false
+                        }
+                    }
+                    .transition(.asymmetric(
+                        insertion: .scale(scale: 0.95).combined(with: .opacity),
+                        removal: .scale(scale: 0.85).combined(with: .opacity)
+                    ))
+                    .zIndex(1) // keep it above the dimmer
+                   
                 }
             }
         }
@@ -235,6 +324,16 @@ struct ReplaceObjectView: View {
             .presentationCornerRadius(20)
            
         }
+        .fullScreenCover(isPresented: $isShowPayWall) {
+            
+            PaywallView(isInternalOpen: true) {
+                showPopUp = false
+                isShowPayWall = false
+            } purchaseCompletSuccessfullyAction: {
+                showPopUp = false
+                isShowPayWall = false
+            }
+        }
         .fullScreenCover(isPresented: $showCameraPicker) {
             ImagePicker(sourceType: .camera) { image in
                 selectedImage = image
@@ -252,13 +351,17 @@ struct ReplaceObjectView: View {
                 return Alert(
                     title: Text("Save Result"),
                     message: Text(message),
-                    dismissButton: .default(Text("OK"))
+                    dismissButton: .default(Text("OK")) {
+                        impactFeedback.impactOccurred()
+                    }
                 )
             case .processingError(let message):
                 return Alert(
                     title: Text("Error"),
                     message: Text(message),
-                    dismissButton: .default(Text("OK"))
+                    dismissButton: .default(Text("OK")) {
+                        impactFeedback.impactOccurred()
+                    }
                 )
             }
         }
@@ -278,12 +381,13 @@ struct ReplaceObjectView: View {
     }
     
     private func mainBrushInterface() -> some View {
-        VStack(spacing: 20) {
+        VStack(spacing: ScaleUtility.scaledSpacing(20)) {
             // Image and Brush area
             if let selectedImage = selectedImage {
                 imageCanvasView(selectedImage: selectedImage)
             } else {
                 Button(action: {
+                    impactFeedback.impactOccurred()
                     showUploadSheet = true
                     activeUploadType = .primary
                 }) {
@@ -306,6 +410,7 @@ struct ReplaceObjectView: View {
             }
             else {
                 Button(action: {
+                    impactFeedback.impactOccurred()
                     showUploadSheet = true
                     activeUploadType = .reference
                 }) {
@@ -381,6 +486,7 @@ struct ReplaceObjectView: View {
                 
                 
                 Button{
+                    impactFeedback.impactOccurred()
                     clearSelectedImage()
                 } label: {
                     Image(.crossIcon2)
@@ -434,6 +540,7 @@ struct ReplaceObjectView: View {
                     
                     
                     Button{
+                        impactFeedback.impactOccurred()
                         clearReferenceImage()
                         showFullReferenceImage = false
                     } label: {
@@ -478,6 +585,7 @@ struct ReplaceObjectView: View {
                     Spacer()
                     
                     Button {
+                        impactFeedback.impactOccurred()
                         withAnimation(.spring(response: 0.35, dampingFraction: 0.85, blendDuration: 0.2)) {
                                showFullReferenceImage = true
                            }

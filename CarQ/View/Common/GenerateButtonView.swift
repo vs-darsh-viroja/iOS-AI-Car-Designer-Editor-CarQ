@@ -12,7 +12,8 @@ struct GenerateButtonView: View {
     
     var isDisabled: Bool
     var action: () -> Void
-  
+    let impactFeedback = UIImpactFeedbackGenerator(style: .light)
+    
     var body: some View {
         ZStack {
             
@@ -43,6 +44,7 @@ struct GenerateButtonView: View {
             
                 
             Button {
+                impactFeedback.impactOccurred()
                 action()
             } label: {
                 

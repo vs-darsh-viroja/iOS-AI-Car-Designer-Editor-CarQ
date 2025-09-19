@@ -264,8 +264,6 @@ struct PaywallPlanView: View {
                         selectedPlan = plan
                     }
                 } label: {
-                    
-                                    
                             HStack {
                                 VStack(alignment: .leading,spacing: ScaleUtility.scaledSpacing(3)) {
                                     Text(plan.planName.uppercased())
@@ -278,14 +276,10 @@ struct PaywallPlanView: View {
                                         .font(FontManager.ChakraPetchMediumFont(size: .scaledFontSize(18)))
                                         .multilineTextAlignment(.center)
                                         .foregroundColor(Color.primaryApp.opacity(0.75))
-                                    
                                 }
-                                
                                 
                                 Spacer()
                                 
-                            
-                                    
                                     HStack(spacing: ScaleUtility.scaledSpacing(25)) {
                                         Rectangle()
                                             .foregroundColor(Color.primaryApp)

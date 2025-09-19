@@ -24,7 +24,10 @@ struct ImagePreview: View {
     @State private var showPermissionAlert = false
     @State private var permissionDeniedOnce = false
     
+    let impactFeedback = UIImpactFeedbackGenerator(style: .light)
+    let selectionFeedback = UISelectionFeedbackGenerator()
     let notificationFeedback = UINotificationFeedbackGenerator()
+    
     
     var body: some View {
         VStack(spacing: 0) {
@@ -33,6 +36,7 @@ struct ImagePreview: View {
                     
                     HStack(spacing: ScaleUtility.scaledSpacing(15)) {
                         Button {
+                            impactFeedback.impactOccurred()
                             onBack()
                         } label: {
                             Image(.backIcon)

@@ -16,6 +16,7 @@ struct RedOverlayView: View {
     
     private var overlayColor: Color {
         Color(.sRGB, red: 255.0/255.0, green: 115.0/255.0, blue: 115.0/255.0)
+            
     }
     
     var body: some View {

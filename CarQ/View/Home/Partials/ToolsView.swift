@@ -34,6 +34,7 @@ struct ToolsView: View {
     
     @State private var twinkle = false
 
+    let impactFeedback = UIImpactFeedbackGenerator(style: .medium)
     
     var body: some View {
         VStack(spacing: ScaleUtility.scaledSpacing(15)) {
@@ -48,6 +49,7 @@ struct ToolsView: View {
                             let tool = tools[toolIndex]
                             
                             Button(action: {
+                                impactFeedback.impactOccurred()
                                 // Handle tap action based on tool
                                 handleToolTap(for: tool.name)
                             }) {

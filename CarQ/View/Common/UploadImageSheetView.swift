@@ -13,7 +13,7 @@ struct UploadImageSheetView: View {
     @Binding var showSheet: Bool
     var onCameraTap: () -> Void
     var onGalleryTap: () -> Void
- 
+    let impactFeedback = UIImpactFeedbackGenerator(style: .light)
     var body: some View {
      
             ZStack {
@@ -32,6 +32,8 @@ struct UploadImageSheetView: View {
                     HStack(spacing: ScaleUtility.scaledSpacing(28)) {
                         
                         Button {
+                            AnalyticsManager.shared.log(.camera)
+                            impactFeedback.impactOccurred()
                             onCameraTap()
                         } label: {
                             Image(.cameraIcon)
@@ -45,6 +47,8 @@ struct UploadImageSheetView: View {
                             .foregroundColor(Color.primaryApp.opacity(0.5))
                         
                         Button {
+                            AnalyticsManager.shared.log(.gallery)
+                            impactFeedback.impactOccurred()
                             onGalleryTap()
                         } label: {
                             Image(.galleryIcon)

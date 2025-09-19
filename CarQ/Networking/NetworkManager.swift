@@ -7,6 +7,7 @@
 
 import Foundation
 import UIKit
+import SwiftUICore
 
 enum NetworkError: LocalizedError {
     case invalidURL
@@ -25,6 +26,9 @@ enum NetworkError: LocalizedError {
 }
 
 final class NetworkManager {
+    
+
+    
     static let shared = NetworkManager(); private init() {}
     
     private let baseURL = "https://api.carq-app.com"
@@ -59,8 +63,6 @@ final class NetworkManager {
         }
 
         addField("prompt", prompt)
-        addField("device_id", "123")
-        addField("is_paid", "\(false)")
         addCommonFields(&body, boundary: boundary)
         addField("aspect_ratio", "square")
 
@@ -116,8 +118,6 @@ final class NetworkManager {
          }
 
          addField("prompt", prompt)
-         addField("device_id", "123")
-         addField("is_paid", "\(false)")
          addCommonFields(&body, boundary: boundary)
          addField("aspect_ratio", "square")
 
@@ -154,8 +154,6 @@ final class NetworkManager {
         }
 
         addField("prompt", prompt)
-        addField("device_id", "123")
-        addField("is_paid", "false")
         addCommonFields(&body, boundary: boundary)
         addField("aspect_ratio", "square")
           
@@ -171,7 +169,7 @@ final class NetworkManager {
     }
     
     /// Image + mask -> img-to-img (remove object). Same as `uploadMagicalModification`, just a different name.
-       func uploadRemoveObject(image: UIImage, maskImage: UIImage, prompt: String) async throws -> ImageUploadResponse {
+       func uploadRemoveObject(/*image: UIImage,*/ maskImage: UIImage, prompt: String) async throws -> ImageUploadResponse {
            guard let url = URL(string: "\(baseURL)/api/img-to-img") else { throw NetworkError.invalidURL }
 
            var request = URLRequest(url: url)
@@ -182,14 +180,14 @@ final class NetworkManager {
 
            var body = Data()
 
-           // Add original image to images[] array
-           if let data = image.jpegData(compressionQuality: 0.9) {
-               body.append("--\(boundary)\r\n")
-               body.append("Content-Disposition: form-data; name=\"images[]\"; filename=\"original.jpg\"\r\n")
-               body.append("Content-Type: image/jpeg\r\n\r\n")
-               body.append(data)
-               body.append("\r\n")
-           }
+//           // Add original image to images[] array
+//           if let data = image.jpegData(compressionQuality: 0.9) {
+//               body.append("--\(boundary)\r\n")
+//               body.append("Content-Disposition: form-data; name=\"images[]\"; filename=\"original.jpg\"\r\n")
+//               body.append("Content-Type: image/jpeg\r\n\r\n")
+//               body.append(data)
+//               body.append("\r\n")
+//           }
 
            // Add mask image to images[] array
            if let data = maskImage.jpegData(compressionQuality: 0.9) {
@@ -209,8 +207,6 @@ final class NetworkManager {
            }
 
            addField("prompt", prompt)
-           addField("device_id", "123")
-           addField("is_paid", "\(false)")
            addCommonFields(&body, boundary: boundary)
            addField("aspect_ratio", "square")
 
@@ -302,8 +298,6 @@ final class NetworkManager {
             body.append("\r\n")
         }
         addField("prompt", prompt)
-        addField("device_id", "123")
-        addField("is_paid", "\(false)")
         addCommonFields(&body, boundary: boundary)
         addField("aspect_ratio", "square")
 
@@ -327,11 +321,13 @@ final class NetworkManager {
         }
 
         // TODO: Uncomment when UserSettings is implemented
-        // let userId = UserSettings.shared.userId
-        // addField("device_id", userId)
+         let userId = UserSettings.shared.userId
+         addField("device_id", userId)
         
-        // let isPro = UserSettings.shared.isPaid
-        // addField("is_paid", "\(isPro)")
+        let isPro =  UserSettings.shared.isPaid
+        if isPro {
+            addField("is_paid", "\(isPro)")
+        }
     }
     
 }

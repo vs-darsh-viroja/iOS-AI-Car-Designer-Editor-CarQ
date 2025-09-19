@@ -10,6 +10,7 @@ import SwiftUI
 
 
 struct ExploreDetailView: View {
+    
     let card: ExploreCard
     var onBack: () -> Void
 
@@ -22,7 +23,7 @@ struct ExploreDetailView: View {
          self.onBack = onBack
          self._promptText = State(initialValue: card.prompt.isEmpty ? "No prompt available" : card.prompt)
      }
-    
+    let impactFeedback = UIImpactFeedbackGenerator(style: .light)
     var body: some View {
         ZStack(alignment: .bottom) {
             VStack(spacing: 0) {
@@ -110,6 +111,8 @@ struct ExploreDetailView: View {
                     .ignoresSafeArea(.all)
                 
                 Button {
+                    AnalyticsManager.shared.log(.recreate)
+                    impactFeedback.impactOccurred()
                     isCreateScreen = true
                 } label: {
                     

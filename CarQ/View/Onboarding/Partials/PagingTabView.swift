@@ -65,11 +65,8 @@ struct PagingTabView<Content: View>: View {
                 .offset(y: ScaleUtility.scaledSpacing(-20))
                 
                 Button {
-                
                     impactfeedback.impactOccurred()
                     buttonAction()
-                    print("Button Clicked")
-            
                 } label: {
                     
                     Text(selectedIndex == 0 ? "Get Started" : "Continue")

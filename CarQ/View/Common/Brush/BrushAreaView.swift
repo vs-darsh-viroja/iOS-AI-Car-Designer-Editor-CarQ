@@ -25,7 +25,7 @@ struct BrushAreaView: View {
     @State private var lastLocation: CGPoint?
     @State private var isDrawing = false
     @State private var cursorLocation: CGPoint?
-
+    let selectionFeedback = UISelectionFeedbackGenerator()
     var body: some View {
         let bounds = CGRect(origin: .zero, size: containerSize)
 
@@ -36,6 +36,7 @@ struct BrushAreaView: View {
                 .gesture(
                     DragGesture(minimumDistance: 0, coordinateSpace: .local)
                         .onChanged { value in
+                            selectionFeedback.selectionChanged()
                             let location = value.location
                             guard bounds.contains(location) else { return }
 

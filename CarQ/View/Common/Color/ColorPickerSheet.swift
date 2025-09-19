@@ -14,6 +14,9 @@ struct ColorPickerSheet: View {
     @Binding var isPresented: Bool
     let onColorApplied: (UIColor) -> Void
     
+    let impactFeedback = UIImpactFeedbackGenerator(style: .light)
+    let selectionFeedback = UISelectionFeedbackGenerator()
+    
     var body: some View {
         ZStack(alignment: .bottom) {
             // Dark background
@@ -26,6 +29,7 @@ struct ColorPickerSheet: View {
                     Spacer()
                     
                     Button {
+                        impactFeedback.impactOccurred()
                         isPresented = false
                     } label: {
                         Image(.crossIcon2)
@@ -61,6 +65,7 @@ struct ColorPickerSheet: View {
                 Spacer()
                 
                 Button {
+                    impactFeedback.impactOccurred()
                     onColorApplied(uiColor)
                     isPresented = false
                 } label: {

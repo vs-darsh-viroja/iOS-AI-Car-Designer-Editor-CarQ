@@ -10,6 +10,12 @@ import SwiftUI
 import PhotosUI
 
 struct RemoveObjectView: View {
+    
+    @StateObject private var ads = RewardedAdManager(adUnitID: "ca-app-pub-3940256099942544/5224354917")
+    @StateObject var userDefault = UserSettings()
+    @EnvironmentObject var purchaseManager: PurchaseManager
+    @EnvironmentObject var remoteConfigManager: RemoteConfigManager
+    
     var onBack: () -> Void
     
     // Image selection states
@@ -39,6 +45,10 @@ struct RemoveObjectView: View {
     @State private var activeAlert: AlertType?
     @State var isProcessing: Bool = false
     @StateObject private var viewModel = GenerationViewModel()
+    let impactFeedback = UIImpactFeedbackGenerator(style: .light)
+    
+    @State var isShowPayWall: Bool = false
+    @State var showPopUp: Bool = false
     
     var body: some View {
         VStack {
@@ -59,9 +69,43 @@ struct RemoveObjectView: View {
                 if brushedAreas.isEmpty {
                     activeAlert = .processingError(message: "Please brush areas you want to modify")
                 } else {
-                    isProcessing = true
+                    withAnimation(.spring(response: 0.35, dampingFraction: 0.8)) {
+                        if !purchaseManager.hasPro && remoteConfigManager.showAds {
+                            
+                            if userDefault.freeImageGenerated < remoteConfigManager.freeConvertion {
+                                
+                                isProcessing = true
+                                userDefault.freeImageGenerated += 1
+                                
+                            }
+                            else if userDefault.freeImageGenerated == remoteConfigManager.freeConvertion && userDefault.rewardAdsImageGenerated >= remoteConfigManager.maximumRewardAd{
+                                isShowPayWall = true
+                            }
+                            else {
+                                showPopUp = true
+                            }
+                        }
+                        else if !purchaseManager.hasPro && remoteConfigManager.temporaryAdsClosed {
+                            if userDefault.rewardAdsImageGenerated >= remoteConfigManager.maximumRewardAd {
+                                isShowPayWall = true
+                            }
+                            else {
+                                
+                                userDefault.rewardAdsImageGenerated += 1
+                                isProcessing = true
+                            }
+                        }
+                        else {
+                            isProcessing = true
+                        }
+                    }
                 }
             })
+        }
+        .task {
+            if !purchaseManager.hasPro {
+                await ads.load()
+            }
         }
         // Add below your existing modifiers in body:
         .navigationDestination(isPresented: $isProcessing) {
@@ -93,17 +137,17 @@ struct RemoveObjectView: View {
                             viewModel.shouldReturn = true
                             return
                         }
-
-                        let finalPrompt = PromptBuilder.buildRemoveObjectPrompt(objectHints: ["headlights"])
+                        let finalPrompt = "Generate an image that should be result of removing the highlighted part from the image. Realistically fill the removed region with surrounding textures, maintaining original lighting, reflections, and perspective for a seamless blend."
+                        //                        let finalPrompt = PromptBuilder.buildRemoveObjectPrompt(objectHints: ["headlights"])
                         viewModel.currentKind = .edited
                         viewModel.currentSource = "MagicalModificationView"
                         viewModel.currentPrompt = finalPrompt          // ← add this
                         let started = await viewModel.startRemoveJob(
-                            image: originalImage,
+//                            image: originalImage,
                             maskImage: maskImage,
                             prompt: finalPrompt
                         )
-
+                        
                         if started {
                             await viewModel.pollUntilReady()
                         } else {
@@ -129,6 +173,51 @@ struct RemoveObjectView: View {
                 }
             }
         }
+        .overlay {
+            if showPopUp {
+                ZStack {
+                    Color.secondaryApp.opacity(0.6).ignoresSafeArea(.all)
+                        .ignoresSafeArea(.all)
+                        .transition(.opacity)
+                        .onTapGesture {
+                            // tap outside to close (optional)
+                            withAnimation(.spring(response: 0.35, dampingFraction: 0.8)) {
+                                showPopUp = false
+                            }
+                        }
+                    
+                    AdsAlertView {
+                        isShowPayWall = true
+                        AnalyticsManager.shared.log(.getPremiumFromAlert)
+                        
+                    } watchAds: {
+                        AnalyticsManager.shared.log(.watchanAd)
+                        ads.showOrProceed(
+                            onReward: { _ in
+                                AnalyticsManager.shared.log(.createScreen)
+                                isProcessing = true
+                                userDefault.rewardAdsImageGenerated += 1 },
+                            proceedAnyway: {
+                                AnalyticsManager.shared.log(.createScreen)
+                                isProcessing = true
+                                userDefault.rewardAdsImageGenerated += 1
+                            }
+                        )
+                  
+                    } closeAction: {
+                        withAnimation(.spring(response: 0.35, dampingFraction: 0.8)) {
+                            showPopUp = false
+                        }
+                    }
+                    .transition(.asymmetric(
+                        insertion: .scale(scale: 0.95).combined(with: .opacity),
+                        removal: .scale(scale: 0.85).combined(with: .opacity)
+                    ))
+                    .zIndex(1) // keep it above the dimmer
+                   
+                }
+            }
+        }
         .sheet(isPresented: $showUploadSheet) {
             UploadImageSheetView(showSheet: $showUploadSheet,
                                  onCameraTap: {
@@ -145,7 +234,7 @@ struct RemoveObjectView: View {
                     }
                 }
             },
-                                 onGalleryTap: {
+                onGalleryTap: {
                 showUploadSheet = false
                 DispatchQueue.main.asyncAfter(deadline: .now() + 0.3) {
                     showPhotoPicker = true
@@ -162,19 +251,33 @@ struct RemoveObjectView: View {
                 resetDrawing()
             }
         }
+        .fullScreenCover(isPresented: $isShowPayWall) {
+            
+            PaywallView(isInternalOpen: true) {
+                showPopUp = false
+                isShowPayWall = false
+            } purchaseCompletSuccessfullyAction: {
+                showPopUp = false
+                isShowPayWall = false
+            }
+        }
         .alert(item: $activeAlert) { alertType in
             switch alertType {
             case .saveResult(let message):
                 return Alert(
                     title: Text("Save Result"),
                     message: Text(message),
-                    dismissButton: .default(Text("OK"))
+                    dismissButton: .default(Text("OK")) {
+                        impactFeedback.impactOccurred()
+                    }
                 )
             case .processingError(let message):
                 return Alert(
                     title: Text("Error"),
                     message: Text(message),
-                    dismissButton: .default(Text("OK"))
+                    dismissButton: .default(Text("OK")) {
+                        impactFeedback.impactOccurred()
+                    }
                 )
             }
         }
@@ -185,8 +288,13 @@ struct RemoveObjectView: View {
         .navigationBarHidden(true)
         .background(Color.secondaryApp.edgesIgnoringSafeArea(.all))
         .alert("Camera Access Needed", isPresented: $showCameraPermissionAlert) {
-            Button("Cancel", role: .cancel) { }
-            Button("Open Settings") { if let url = URL(string: UIApplication.openSettingsURLString) { UIApplication.shared.open(url) } }
+            Button("Cancel", role: .cancel) {
+                impactFeedback.impactOccurred()
+            }
+            Button("Open Settings") {
+                impactFeedback.impactOccurred()
+                if let url = URL(string: UIApplication.openSettingsURLString) { UIApplication.shared.open(url) }
+            }
         } message: {
             Text("Please enable Camera access in Settings to take a photo.")
         }
@@ -200,6 +308,7 @@ struct RemoveObjectView: View {
                 imageCanvasView(selectedImage: selectedImage)
             } else {
                 Button(action: {
+                    impactFeedback.impactOccurred()
                     showUploadSheet = true
                 }) {
                     UploadContainerView()
@@ -244,6 +353,7 @@ struct RemoveObjectView: View {
                                         imageSize: imageFrame.size,
                                         brushSize: brushSize
                                     )
+                                    .opacity(0.5)
                                     .allowsHitTesting(false)
                                 }
                                 
@@ -282,6 +392,7 @@ struct RemoveObjectView: View {
                 
                 
                 Button{
+                    impactFeedback.impactOccurred()
                     clearSelectedImage()
                 } label: {
                     Image(.crossIcon2)

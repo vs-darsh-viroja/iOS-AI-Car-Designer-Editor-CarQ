@@ -11,6 +11,9 @@ import SwiftUI
 
 struct ForceUpdateAlertView: View {
     @Environment(\.colorScheme) var colorScheme
+
+    let impactFeedback = UIImpactFeedbackGenerator(style: .medium)
+
     
     var body: some View {
         ZStack {
@@ -39,8 +42,9 @@ struct ForceUpdateAlertView: View {
                     .offset(y:.scaledFontSize(10))
                 
                 Button(action: {
+                    impactFeedback.impactOccurred()
                     self.openAppInAppStore()
-//                    AnalyticsManager.shared.log(.noOfUserUpdatedApp)
+                    AnalyticsManager.shared.log(.noOfUserUpdatedApp)
                 })
                 {
                     Text("Update Now")

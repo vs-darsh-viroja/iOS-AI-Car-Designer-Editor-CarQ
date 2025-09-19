@@ -25,6 +25,9 @@ struct ResultView: View {
     var onClose: () -> Void
     
     let notificationFeedback = UINotificationFeedbackGenerator()
+    let impactFeedback = UIImpactFeedbackGenerator(style: .light)
+    let selectionFeedback = UISelectionFeedbackGenerator()
+
     
     var body: some View {
         VStack(spacing: 0) {
@@ -138,8 +141,12 @@ struct ResultView: View {
         }
         // Delete confirmation dialog
         .alert("Delete Image", isPresented: $showDeleteConfirmation) {
-            Button("Cancel", role: .cancel) { }
+            Button("Cancel", role: .cancel) {
+                impactFeedback.impactOccurred()
+            }
             Button("Delete", role: .destructive) {
+                AnalyticsManager.shared.log(.deleteOne)
+                notificationFeedback.notificationOccurred(.success)
                 deleteImageFromHistory()
             }
         } message: {

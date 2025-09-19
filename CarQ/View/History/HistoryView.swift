@@ -21,6 +21,9 @@ struct HistoryView: View {
     
     @State var isDropdownOpen = false
     @State private var sortNewestFirst: Bool = true
+    let impactFeedback = UIImpactFeedbackGenerator(style: .light)
+    let selectionFeedback = UISelectionFeedbackGenerator()
+    let notificationFeedback = UINotificationFeedbackGenerator()
     
     var body: some View {
         VStack(spacing: ScaleUtility.scaledSpacing(10)) {
@@ -34,6 +37,8 @@ struct HistoryView: View {
             HStack {
                 
                 Button {
+                    AnalyticsManager.shared.log(.sort)
+                    impactFeedback.impactOccurred()
                     isDropdownOpen = true
                 } label: {
                     Rectangle()
@@ -72,6 +77,7 @@ struct HistoryView: View {
                         
                         VStack {
                             Button {
+                                selectionFeedback.selectionChanged()
                                 sortNewestFirst = true
                                 isDropdownOpen = false
                             } label: {
@@ -87,6 +93,7 @@ struct HistoryView: View {
                                 .frame(height: ScaleUtility.scaledValue(1))
                             
                             Button {
+                                selectionFeedback.selectionChanged()
                                 sortNewestFirst = false
                                 isDropdownOpen = false
                             } label: {
@@ -133,6 +140,7 @@ struct HistoryView: View {
                                     let record = historyRecords[index]
                                     
                                     Button(action: {
+                                        impactFeedback.impactOccurred()
                                         selectedRecord = record
                                         previewImageURL = computePreviewURL(for: record)
                                         showPreview = true
@@ -185,10 +193,13 @@ struct HistoryView: View {
         }
         .alert("Delete Image", isPresented: $showDeleteConfirmation) {
             Button("Cancel", role: .cancel) {
+                impactFeedback.impactOccurred()
                 recordToDelete = nil
             }
             Button("Delete", role: .destructive) {
                 if let record = recordToDelete {
+                    AnalyticsManager.shared.log(.deleteOne)
+                    notificationFeedback.notificationOccurred(.success)
                     deleteRecord(record)
                 }
                 if showPreview {

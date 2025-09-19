@@ -25,7 +25,7 @@ struct AccessoriesView: View {
         .init(name: "Side Skirts", imageName: "SideSkirts"),
         .init(name: "Spoiler", imageName: "Spoiler"),
     ]
-    
+    let selectionFeedback = UISelectionFeedbackGenerator()
     var body: some View {
         VStack(spacing: ScaleUtility.scaledSpacing(13)) {
             Text("Accessories")
@@ -42,6 +42,7 @@ struct AccessoriesView: View {
                         let isSelected = selectedAccessory == accessory.name
                         
                         Button {
+                            selectionFeedback.selectionChanged()
                             if selectedAccessory == accessory.name {
                                 selectedAccessory = ""
                             } else {

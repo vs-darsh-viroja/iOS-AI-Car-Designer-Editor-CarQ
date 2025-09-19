@@ -28,6 +28,7 @@ struct DesignStylesView: View {
         .init(name: "Stealth", imageName: "Stealth"),
         .init(name: "Street Racer", imageName: "StreetRacer")
     ]
+    let selectionFeedback = UISelectionFeedbackGenerator()
     
     var body: some View {
         VStack(spacing: ScaleUtility.scaledSpacing(13)) {
@@ -45,6 +46,7 @@ struct DesignStylesView: View {
                         let isSelected = selectedDesignStyle == designStyle.name
                         
                         Button {
+                            selectionFeedback.selectionChanged()
                             if selectedDesignStyle == designStyle.name {
                                 selectedDesignStyle = ""
                             } else {

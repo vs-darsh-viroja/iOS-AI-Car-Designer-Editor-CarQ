@@ -10,6 +10,12 @@ import SwiftUI
 import PhotosUI
 // MARK: - Updated Change Color View
 struct ChangeColorView: View {
+    
+    @StateObject private var ads = RewardedAdManager(adUnitID: "ca-app-pub-3940256099942544/5224354917")
+    @StateObject var userDefault = UserSettings()
+    @EnvironmentObject var purchaseManager: PurchaseManager
+    @EnvironmentObject var remoteConfigManager: RemoteConfigManager
+    
     var onBack: () -> Void
     
     @State var selectedColor: String = ""
@@ -46,6 +52,11 @@ struct ChangeColorView: View {
     @State var isProcessing: Bool = false
     @StateObject private var viewModel = GenerationViewModel()
     
+    let impactFeedback = UIImpactFeedbackGenerator(style: .light)
+    
+    @State var isShowPayWall: Bool = false
+    @State var showPopUp: Bool = false
+    
     var body: some View {
         ZStack(alignment: .bottom) {
             VStack(spacing: 0) {
@@ -77,7 +88,36 @@ struct ChangeColorView: View {
                 } else if (customColorHex != nil) && selectedColor == "" {
                     activeAlert = .processingError(message: "Please select a color or enter a custom hex")
                 } else {
-                    isProcessing = true
+                    withAnimation(.spring(response: 0.35, dampingFraction: 0.8)) {
+                        if !purchaseManager.hasPro && remoteConfigManager.showAds {
+                            
+                            if userDefault.freeImageGenerated < remoteConfigManager.freeConvertion {
+                                
+                                isProcessing = true
+                                userDefault.freeImageGenerated += 1
+                                
+                            }
+                            else if userDefault.freeImageGenerated == remoteConfigManager.freeConvertion && userDefault.rewardAdsImageGenerated >= remoteConfigManager.maximumRewardAd{
+                                isShowPayWall = true
+                            }
+                            else {
+                                showPopUp = true
+                            }
+                        }
+                        else if !purchaseManager.hasPro && remoteConfigManager.temporaryAdsClosed {
+                            if userDefault.rewardAdsImageGenerated >= remoteConfigManager.maximumRewardAd {
+                                isShowPayWall = true
+                            }
+                            else {
+                                
+                                userDefault.rewardAdsImageGenerated += 1
+                                isProcessing = true
+                            }
+                        }
+                        else {
+                            isProcessing = true
+                        }
+                    }
                 }
             })
         }
@@ -87,11 +127,13 @@ struct ChangeColorView: View {
                 onBack: {
                     if viewModel.shouldReturn {
                         activeAlert = .processingError(message: viewModel.errorMessage ??  "Generation failed. Please try again.")
+                        showPopUp = false
                         isProcessing = false
                         withAnimation { showToast = true }
                         viewModel.shouldReturn = false
                     } else {
                         isProcessing = false
+                        showPopUp = false
                     }
                 },
                 onAppear: {
@@ -120,11 +162,24 @@ struct ChangeColorView: View {
                         } else {
                             viewModel.shouldReturn = true
                         }
+                        
+                        AnalyticsHelper.logSelectionAnalytics(
+                            color: selectedColor,
+                            customColorHex: customColorHex,
+                            finish: selectedFinish,
+                            speicalEffect: selectedEffect
+                        )
+                        
                     }
                 },
                 onClose: { onBack() }
             )
             .background(Color.secondaryApp.edgesIgnoringSafeArea(.all))
+        }
+        .task {
+            if !purchaseManager.hasPro {
+                await ads.load()
+            }
         }
         .onChange(of: targetPhotoItem) { newItem in
             Task {
@@ -135,6 +190,51 @@ struct ChangeColorView: View {
                             resetDrawing()
                         }
                     }
+                }
+            }
+        }
+        .overlay {
+            if showPopUp {
+                ZStack {
+                    Color.secondaryApp.opacity(0.6).ignoresSafeArea(.all)
+                        .ignoresSafeArea(.all)
+                        .transition(.opacity)
+                        .onTapGesture {
+                            // tap outside to close (optional)
+                            withAnimation(.spring(response: 0.35, dampingFraction: 0.8)) {
+                                showPopUp = false
+                            }
+                        }
+                    
+                    AdsAlertView {
+                        isShowPayWall = true
+                        AnalyticsManager.shared.log(.getPremiumFromAlert)
+                        
+                    } watchAds: {
+                        AnalyticsManager.shared.log(.watchanAd)
+                        ads.showOrProceed(
+                            onReward: { _ in
+                                AnalyticsManager.shared.log(.createScreen)
+                                isProcessing = true
+                                userDefault.rewardAdsImageGenerated += 1 },
+                            proceedAnyway: {
+                                AnalyticsManager.shared.log(.createScreen)
+                                isProcessing = true
+                                userDefault.rewardAdsImageGenerated += 1
+                            }
+                        )
+                  
+                    } closeAction: {
+                        withAnimation(.spring(response: 0.35, dampingFraction: 0.8)) {
+                            showPopUp = false
+                        }
+                    }
+                    .transition(.asymmetric(
+                        insertion: .scale(scale: 0.95).combined(with: .opacity),
+                        removal: .scale(scale: 0.85).combined(with: .opacity)
+                    ))
+                    .zIndex(1) // keep it above the dimmer
+                   
                 }
             }
         }
@@ -165,6 +265,16 @@ struct ChangeColorView: View {
             .presentationCornerRadius(20)
       
         }
+        .fullScreenCover(isPresented: $isShowPayWall) {
+            
+            PaywallView(isInternalOpen: true) {
+                showPopUp = false
+                isShowPayWall = false
+            } purchaseCompletSuccessfullyAction: {
+                showPopUp = false
+                isShowPayWall = false
+            }
+        }
         .fullScreenCover(isPresented: $showCameraPicker) {
             ImagePicker(sourceType: .camera) { image in
                 selectedImage = image
@@ -177,13 +287,17 @@ struct ChangeColorView: View {
                 return Alert(
                     title: Text("Save Result"),
                     message: Text(message),
-                    dismissButton: .default(Text("OK"))
+                    dismissButton: .default(Text("OK")) {
+                        impactFeedback.impactOccurred()
+                    }
                 )
             case .processingError(let message):
                 return Alert(
                     title: Text("Error"),
                     message: Text(message),
-                    dismissButton: .default(Text("OK"))
+                    dismissButton: .default(Text("OK")) {
+                        impactFeedback.impactOccurred()
+                    }
                 )
             }
         }
@@ -194,8 +308,13 @@ struct ChangeColorView: View {
         .navigationBarHidden(true)
         .background(Color.secondaryApp.edgesIgnoringSafeArea(.all))
         .alert("Camera Access Needed", isPresented: $showCameraPermissionAlert) {
-            Button("Cancel", role: .cancel) { }
-            Button("Open Settings") { if let url = URL(string: UIApplication.openSettingsURLString) { UIApplication.shared.open(url) } }
+            Button("Cancel", role: .cancel) {
+                impactFeedback.impactOccurred()
+            }
+            Button("Open Settings") {
+                impactFeedback.impactOccurred()
+                if let url = URL(string: UIApplication.openSettingsURLString) { UIApplication.shared.open(url) }
+            }
         } message: {
             Text("Please enable Camera access in Settings to take a photo.")
         }
@@ -208,6 +327,7 @@ struct ChangeColorView: View {
                 imageCanvasView(selectedImage: selectedImage)
             } else {
                 Button(action: {
+                    impactFeedback.impactOccurred()
                     showUploadSheet = true
                 }) {
                     UploadContainerView()
@@ -295,6 +415,7 @@ struct ChangeColorView: View {
                 
                 
                 Button{
+                    impactFeedback.impactOccurred()
                     clearSelectedImage()
                 } label: {
                     Image(.crossIcon2)

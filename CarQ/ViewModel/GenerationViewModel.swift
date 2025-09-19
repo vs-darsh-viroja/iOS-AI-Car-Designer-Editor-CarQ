@@ -89,13 +89,13 @@ final class GenerationViewModel: ObservableObject {
     }
     
     
-    func startRemoveJob(image: UIImage, maskImage: UIImage, prompt: String) async -> Bool {
+    func startRemoveJob(/*image: UIImage,*/ maskImage: UIImage, prompt: String) async -> Bool {
         errorMessage = nil
         shouldReturn = false
 
         
         do {
-            let resp = try await network.uploadRemoveObject(image: image, maskImage: maskImage, prompt: prompt)
+            let resp = try await network.uploadRemoveObject(/*image: image,*/ maskImage: maskImage, prompt: prompt)
             guard resp.status, let id = resp.data?.id else {
                 errorMessage = "Failed to start processing."
                 return false

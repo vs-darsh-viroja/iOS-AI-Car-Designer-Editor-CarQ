@@ -13,6 +13,12 @@ enum UploadType { case primary, reference }
 
 
 struct ModifyObjectView: View {
+    
+    @StateObject private var ads = RewardedAdManager(adUnitID: "ca-app-pub-3940256099942544/5224354917")
+    @StateObject var userDefault = UserSettings()
+    @EnvironmentObject var purchaseManager: PurchaseManager
+    @EnvironmentObject var remoteConfigManager: RemoteConfigManager
+    
     var onBack: () -> Void
     @StateObject private var keyboard = KeyboardResponder()
     @State var prompt: String = ""
@@ -59,6 +65,10 @@ struct ModifyObjectView: View {
     @StateObject private var viewModel = GenerationViewModel()
   
     @Namespace private var refImageNS
+    let impactFeedback = UIImpactFeedbackGenerator(style: .light)
+    
+    @State var isShowPayWall: Bool = false
+    @State var showPopUp: Bool = false
     
     var body: some View {
         ZStack(alignment: .bottom) {
@@ -121,7 +131,36 @@ struct ModifyObjectView: View {
                 } else if prompt.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty {
                     activeAlert = .processingError(message: "Please enter a prompt to describe the desired changes")
                 } else {
-                    isProcessing = true
+                    withAnimation(.spring(response: 0.35, dampingFraction: 0.8)) {
+                        if !purchaseManager.hasPro && remoteConfigManager.showAds {
+                            
+                            if userDefault.freeImageGenerated < remoteConfigManager.freeConvertion {
+                                
+                                isProcessing = true
+                                userDefault.freeImageGenerated += 1
+                                
+                            }
+                            else if userDefault.freeImageGenerated == remoteConfigManager.freeConvertion && userDefault.rewardAdsImageGenerated >= remoteConfigManager.maximumRewardAd{
+                                isShowPayWall = true
+                            }
+                            else {
+                                showPopUp = true
+                            }
+                        }
+                        else if !purchaseManager.hasPro && remoteConfigManager.temporaryAdsClosed {
+                            if userDefault.rewardAdsImageGenerated >= remoteConfigManager.maximumRewardAd {
+                                isShowPayWall = true
+                            }
+                            else {
+                                
+                                userDefault.rewardAdsImageGenerated += 1
+                                isProcessing = true
+                            }
+                        }
+                        else {
+                            isProcessing = true
+                        }
+                    }
                 }
             })
             
@@ -143,6 +182,11 @@ struct ModifyObjectView: View {
                 }
             }
         }
+        .task {
+            if !purchaseManager.hasPro {
+                await ads.load()
+            }
+        }
         // REFERENCE
         .onChange(of: referencePhotoItem) { _, newItem in
             guard let newItem else { return }
@@ -154,17 +198,64 @@ struct ModifyObjectView: View {
                 }
             }
         }
+        .overlay {
+            if showPopUp {
+                ZStack {
+                    Color.secondaryApp.opacity(0.6).ignoresSafeArea(.all)
+                        .ignoresSafeArea(.all)
+                        .transition(.opacity)
+                        .onTapGesture {
+                            // tap outside to close (optional)
+                            withAnimation(.spring(response: 0.35, dampingFraction: 0.8)) {
+                                showPopUp = false
+                            }
+                        }
+                    
+                    AdsAlertView {
+                        isShowPayWall = true
+                        AnalyticsManager.shared.log(.getPremiumFromAlert)
+                        
+                    } watchAds: {
+                        AnalyticsManager.shared.log(.watchanAd)
+                        ads.showOrProceed(
+                            onReward: { _ in
+                                AnalyticsManager.shared.log(.createScreen)
+                                isProcessing = true
+                                userDefault.rewardAdsImageGenerated += 1 },
+                            proceedAnyway: {
+                                AnalyticsManager.shared.log(.createScreen)
+                                isProcessing = true
+                                userDefault.rewardAdsImageGenerated += 1
+                            }
+                        )
+                  
+                    } closeAction: {
+                        withAnimation(.spring(response: 0.35, dampingFraction: 0.8)) {
+                            showPopUp = false
+                        }
+                    }
+                    .transition(.asymmetric(
+                        insertion: .scale(scale: 0.95).combined(with: .opacity),
+                        removal: .scale(scale: 0.85).combined(with: .opacity)
+                    ))
+                    .zIndex(1) // keep it above the dimmer
+                   
+                }
+            }
+        }
         .navigationDestination(isPresented: $isProcessing) {
             ProcessingView(
                 viewModel: viewModel,
                 onBack: {
                     if viewModel.shouldReturn {
                         activeAlert = .processingError(message: viewModel.errorMessage ?? "Generation failed. Please try again.")
+                        showPopUp = false
                         isProcessing = false
                         withAnimation { showToast = true }
                         viewModel.shouldReturn = false
                     } else {
                         isProcessing = false
+                        showPopUp = false
                     }
                 },
                 onAppear: {
@@ -236,6 +327,16 @@ struct ModifyObjectView: View {
             .presentationCornerRadius(20)
       
         }
+        .fullScreenCover(isPresented: $isShowPayWall) {
+            
+            PaywallView(isInternalOpen: true) {
+                showPopUp = false
+                isShowPayWall = false
+            } purchaseCompletSuccessfullyAction: {
+                showPopUp = false
+                isShowPayWall = false
+            }
+        }
         .fullScreenCover(isPresented: $showCameraPicker) {
             ImagePicker(sourceType: .camera) { image in
                 selectedImage = image
@@ -271,8 +372,13 @@ struct ModifyObjectView: View {
         .navigationBarHidden(true)
         .background(Color.secondaryApp.edgesIgnoringSafeArea(.all))
         .alert("Camera Access Needed", isPresented: $showCameraPermissionAlert) {
-            Button("Cancel", role: .cancel) { }
-            Button("Open Settings") { if let url = URL(string: UIApplication.openSettingsURLString) { UIApplication.shared.open(url) } }
+            Button("Cancel", role: .cancel) {
+                impactFeedback.impactOccurred()
+            }
+            Button("Open Settings") {
+                impactFeedback.impactOccurred()
+                if let url = URL(string: UIApplication.openSettingsURLString) { UIApplication.shared.open(url) }
+            }
         } message: {
             Text("Please enable Camera access in Settings to take a photo.")
         }
@@ -285,6 +391,7 @@ struct ModifyObjectView: View {
                 imageCanvasView(selectedImage: selectedImage)
             } else {
                 Button(action: {
+                    impactFeedback.impactOccurred()
                     showUploadSheet = true
                     activeUploadType = .primary
                 }) {
@@ -307,6 +414,7 @@ struct ModifyObjectView: View {
             }
             else {
                 Button(action: {
+                    impactFeedback.impactOccurred()
                     showUploadSheet = true
                     activeUploadType = .reference
                 }) {
@@ -383,6 +491,7 @@ struct ModifyObjectView: View {
                 
                 
                 Button{
+                    impactFeedback.impactOccurred()
                     clearSelectedImage()
                 } label: {
                     Image(.crossIcon2)
@@ -433,9 +542,8 @@ struct ModifyObjectView: View {
                             .frame(height: ScaleUtility.scaledValue(170))
                     }
              
-                    
-                    
                     Button{
+                        impactFeedback.impactOccurred()
                         clearReferenceImage()
                         showFullReferenceImage = false
                     } label: {
@@ -480,6 +588,7 @@ struct ModifyObjectView: View {
                     Spacer()
                     
                     Button {
+                        impactFeedback.impactOccurred()
                         withAnimation(.spring(response: 0.35, dampingFraction: 0.85, blendDuration: 0.2)) {
                                showFullReferenceImage = true
                            }

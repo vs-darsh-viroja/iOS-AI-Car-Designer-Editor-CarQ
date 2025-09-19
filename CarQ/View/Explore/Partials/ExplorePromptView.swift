@@ -11,7 +11,7 @@ import SwiftUI
 struct ExplorePromptView: View {
     @Binding var text: String
     @State private var showCopiedPopup = false  // ✅ New state variable
-
+    let impactFeedback = UIImpactFeedbackGenerator(style: .light)
     var body: some View {
         ZStack {
             Image(.promptField)
@@ -46,7 +46,8 @@ struct ExplorePromptView: View {
      
                     
                     Button(action: {
-                        
+                        AnalyticsManager.shared.log(.copy)
+                        impactFeedback.impactOccurred()
                         UIPasteboard.general.string = text
                         
                         withAnimation {

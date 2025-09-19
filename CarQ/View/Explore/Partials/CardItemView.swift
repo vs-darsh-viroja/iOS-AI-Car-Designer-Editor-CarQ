@@ -11,9 +11,13 @@ import SwiftUI
 struct CardItemView: View {
     let card: ExploreCard
     let onTap: () -> Void
-    
+    let impactFeedback = UIImpactFeedbackGenerator(style: .light)
     var body: some View {
-        VStack {
+   
+        Button {
+            impactFeedback.impactOccurred()
+            onTap()
+        } label: {
             Image(card.imageName)
                 .resizable()
                 .aspectRatio(contentMode: .fill)
@@ -27,9 +31,8 @@ struct CardItemView: View {
                                height: isIPad ? 324 * ipadHeightRatio : ScaleUtility.scaledValue(172.00098))
                 }
         }
-        .onTapGesture {
-            onTap()
-        }
+
+       
     }
 }
 

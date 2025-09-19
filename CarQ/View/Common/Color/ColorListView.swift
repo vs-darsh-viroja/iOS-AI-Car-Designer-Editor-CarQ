@@ -42,7 +42,7 @@ struct ColorListView: View {
         default:            return .clear
         }
     }
-
+    let selectionFeedback = UISelectionFeedbackGenerator()
     private var previewColor: Color { color(from: selectedColor) }
 
     var body: some View {
@@ -71,6 +71,7 @@ struct ColorListView: View {
 
                         Button {
                             if isPickerPlate {
+                                selectionFeedback.selectionChanged()
                                 // Toggle custom color selection
                                 if selectedColor == "custom" {
                                     // Deselect custom color
@@ -82,6 +83,7 @@ struct ColorListView: View {
                                     showSystemPicker = true
                                 }
                             } else {
+                                selectionFeedback.selectionChanged()
                                 if selectedColor == item.colorname {
                                     selectedColor = ""
                                 } else {

@@ -23,6 +23,8 @@ struct SpecialEffectView: View {
         .init(name: "Racing Stripes", imageName: "RacingStripes"),
     ]
     
+    let selectionFeedback = UISelectionFeedbackGenerator()
+    
     var body: some View {
         VStack(spacing: ScaleUtility.scaledSpacing(13)) {
             Text("Special Effects")
@@ -39,6 +41,7 @@ struct SpecialEffectView: View {
                         let isSelected = selectedEffect == effectType.name
                         
                         Button {
+                            selectionFeedback.selectionChanged()
                             if selectedEffect == effectType.name {
                                 selectedEffect = ""
                             } else {
